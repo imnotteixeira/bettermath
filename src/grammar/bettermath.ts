@@ -192,7 +192,7 @@ const tableParser: P.Parser<ExpressionType> = table.reduce<P.Parser<ExpressionTy
 
 const Expression: P.Parser<ExpressionType> = tableParser.trim(_)
 
-const grammar = P.seq(EQUALS, Expression)
+const grammar: P.Parser<ExpressionType> = P.seq(EQUALS, Expression).map(([_, exp]) => exp)
     .or(Value)
 
 // let ast = grammar.parse("=3s4")
@@ -200,12 +200,13 @@ const grammar = P.seq(EQUALS, Expression)
 // let ast = grammar.parse("=1*2+SUM(SUM(1,2), SUB(2,1))")
 // let ast = grammar.parse("=SUM(SUB(1,2))")
 // let ast = grammar.parse("=1+2")
-let ast = grammar.parse("=--(1!)+-(2*-SUM(3,2))")
-console.log(inspect(ast, {showHidden: true, depth: 12, colors: true}));
+// let ast = grammar.parse("=--(1!)+-(2*-SUM(3,2))")
+// console.log(inspect(ast, {showHidden: true, depth: 12, colors: true}));
 
 // const gds = ast as P.Success<["=", RecursiveExpression]>
 // console.log((gds.value[1] as BaseType).type)
 
+export default grammar;
 
 // TODO 
 // * Generalize functions definition, as well as .exec in order to compute their values
