@@ -131,15 +131,16 @@ function BINARY_LEFT(operatorsParser, nextParser) {
     );
 }
 
-const Num = P.regexp(/[0-9]+/)
-    .map(str => ["Number", Number(str)])
-    .desc("number");
-
 const String = P.regexp(/\w+/)
     .map(str => ["String", str])
     .desc("string");
 
-const Value = P.alt(Num.skip(P.eof), String);
+const Num = P.regexp(/[0-9]+/)
+    .notFollowedBy(String)
+    .map(str => ["Number", Number(str)])
+    .desc("number");
+
+const Value = P.alt(Num, String);
 
 // A basic unit is any parenthesized expression or a number.
 const Unit = P.lazy(() => 
@@ -170,8 +171,9 @@ const Expression = tableParser.trim(_)
 const grammar = P.seq(EQUALS, Expression)
     .or(Value)
 
-// let ast = grammar.parse("=34")
-let ast = grammar.parse("=1+2*SUM(3,1+3, a)")
+// let ast = grammar.parse("3")
+// let ast = grammar.parse("=1+2*SUM(3,a3+3a, a)")
+let ast = grammar.parse("=-1+2*SUM(3,a3+3a, a)")
 // let ast = grammar.parse("=1*2+SUM(SUM(1,2), SUB(2,1))")
 console.log(util.inspect(ast, {showHidden: true, depth: 8, colors: true}));
 

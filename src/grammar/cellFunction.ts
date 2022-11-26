@@ -1,6 +1,6 @@
 import { inspect } from "util"
 import * as P from "parsimmon"
-import { IFunction, IFunctionArg } from "./function/definitions"
+import type {ExpressionType, IFunction, IFunctionArg, MathOperation, MathOperatorDefinition, MathOperatorType, NumberType, StringType, ValueType } from "./function/definitions"
 
 const _ = P.optWhitespace
 const EQUALS = P.string("=")
@@ -19,24 +19,24 @@ const Function = P.lazy(() =>
         OPEN_PAR,
         ["args", FnArgs], 
         CLOSE_PAR
-    )
+    ).map<IFunction>((params: {fn: string, args: IFunctionArg[]}) => ({type: "function", ...params}))
 );
 
 const RestArgs = P.lazy(() => 
-    P.seqMap(
+    P.seqMap<string, IFunctionArg, IFunctionArg>(
         COMMA.trim(_),
         Expression,
-        (comma, expr) => expr
+        (_: string, expr: ExpressionType) => expr
     ).atLeast(1)
 );
 
 const FnArgs = P.lazy(() =>
-    P.alt<IFunctionArg>(
-        P.seq<IFunctionArg>(
-            Expression, // first args
+    P.alt<IFunctionArg[]>(
+        P.seq<IFunctionArg, IFunctionArg[]>(
+            Expression, // first arg
             RestArgs // subsequent args
         ).map(([firstArg, restArgs]) => ([firstArg, ...restArgs])),
-        Expression
+        Expression.map(exp => [exp]) // always return an array of args, even though there's only 1
     )
 );
 
@@ -47,7 +47,7 @@ const FnArgs = P.lazy(() =>
 //
 // Gives back an operator that parses either + or - surrounded by optional
 // whitespace, and gives back the word "Add" or "Sub" instead of the character.
-function operators(ops) {
+function mathOperators(ops: Record<string, string>): P.Parser<MathOperation> {
     let keys = Object.keys(ops).sort();
     let ps = keys.map(k =>
         P.string(ops[k])
@@ -61,13 +61,21 @@ function operators(ops) {
 // parsed, and parses as many occurrences as possible of the prefix operator.
 // Note that the parser is created using `P.lazy` because it's recursive. It's
 // valid for there to be zero occurrences of the prefix operator.
-function PREFIX(operatorsParser, nextParser) {
-    let parser = P.lazy(() => {
-        return P.seq(operatorsParser, parser).or(nextParser);
-    });
+const PREFIX: MathOperatorType = (operatorsParser, nextParser) => {
+    const parser: P.Parser<ExpressionType> = P.lazy(() => {
+        return P.seq<MathOperation, ExpressionType>(
+            operatorsParser, 
+            parser
+        ).map<IFunction>(([op, exp]: [MathOperation, ExpressionType]) => ({
+            type: "function",
+            fn: op,
+            args: [exp]
+        }))
+        .or<ExpressionType>(nextParser);
+    });  
     return parser;
 }
-  
+
 // Ideally this function would be just like `PREFIX` but reordered like
 // `P.seq(parser, operatorsParser).or(nextParser)`, but that doesn't work. The
 // reason for that is that Parsimmon will get stuck in infinite recursion, since
@@ -77,7 +85,7 @@ function PREFIX(operatorsParser, nextParser) {
 // takes the first possible match, even if subsequent matches are longer, so the
 // parser will never actually look far enough ahead to see the postfix
 // operators.
-function POSTFIX(operatorsParser, nextParser) {
+const POSTFIX: MathOperatorType = (operatorsParser, nextParser) => {
     // Because we can't use recursion like stated above, we just match a flat list
     // of as many occurrences of the postfix operator as possible, then use
     // `.reduce` to manually nest the list.
@@ -87,8 +95,12 @@ function POSTFIX(operatorsParser, nextParser) {
     // INPUT  :: "4!!!"
     // PARSE  :: [4, "factorial", "factorial", "factorial"]
     // REDUCE :: ["factorial", ["factorial", ["factorial", 4]]]
-    return P.seqMap(nextParser, operatorsParser.many(), (x, suffixes) =>
-        suffixes.reduce((acc, x) => [x, acc], x)
+    return P.seqMap<ExpressionType, MathOperation[], ExpressionType>(nextParser, operatorsParser.many(), (x, suffixes) =>
+        suffixes.reduceRight<ExpressionType>((acc: ExpressionType, currentSuffix: MathOperation) => ({
+            type: "function",
+            fn: currentSuffix,
+            args: [acc]
+        }), x)
     );
 }
   
@@ -96,10 +108,16 @@ function POSTFIX(operatorsParser, nextParser) {
 // that parsers everything at the next precedence level, and returns a parser
 // that parses as many binary operations as possible, associating them to the
 // right. (e.g. 1^2^3 is 1^(2^3) not (1^2)^3)
-function BINARY_RIGHT(operatorsParser, nextParser) {
-    let parser = P.lazy(() =>
-        nextParser.chain(next =>
-            P.seq(operatorsParser, P.of(next), parser).or(P.of(next))
+const BINARY_RIGHT: MathOperatorType = (operatorsParser, nextParser) => {
+    let parser: P.Parser<ExpressionType> = P.lazy(() =>
+        nextParser.chain<ExpressionType>(next =>
+            P.seq<MathOperation, ExpressionType, ExpressionType>(operatorsParser, P.of(next), parser)
+            .map<ExpressionType>(([operator, leftExp, rightExp]:[MathOperation, ExpressionType, ExpressionType]) => ({
+                type: "function",
+                fn: operator,
+                args: [leftExp, rightExp]
+            }))
+            .or<ExpressionType>(P.of(next))
         )
     );
     return parser;
@@ -109,7 +127,7 @@ function BINARY_RIGHT(operatorsParser, nextParser) {
 // that parsers everything at the next precedence level, and returns a parser
 // that parses as many binary operations as possible, associating them to the
 // left. (e.g. 1-2-3 is (1-2)-3 not 1-(2-3))
-function BINARY_LEFT(operatorsParser, nextParser) {
+const BINARY_LEFT: MathOperatorType = (operatorsParser, nextParser) => {
     // We run into a similar problem as with the `POSTFIX` parser above where we
     // can't recurse in the direction we want, so we have to resort to parsing an
     // entire list of operator chunks and then using `.reduce` to manually nest
@@ -120,63 +138,76 @@ function BINARY_LEFT(operatorsParser, nextParser) {
     // INPUT  :: "1+2+3"
     // PARSE  :: [1, ["+", 2], ["+", 3]]
     // REDUCE :: ["+", ["+", 1, 2], 3]
-    return P.seqMap(
+    return P.seqMap<ExpressionType, [MathOperation, ExpressionType][], ExpressionType>(
         nextParser,
-        P.seq(operatorsParser, nextParser).many(),
+        P.seq<MathOperation, ExpressionType>(operatorsParser, nextParser).many(),
         (first, rest) => {
-            return rest.reduce((acc, ch) => {
+            return rest.reduce<ExpressionType>((acc: ExpressionType, ch: [MathOperation, ExpressionType]) => {
             let [op, another] = ch;
-            return [op, acc, another];
-            }, first);
+            return {
+                type: "function",
+                fn: op,
+                args: [acc, another]
+            }}, first);
         }
     );
 }
 
-const Num = P.regexp(/[0-9]+/)
-    .map(str => ["Number", Number(str)])
-    .desc("number");
-
-const String = P.regexp(/\w+/)
-    .map(str => ["String", str])
+const String: P.Parser<StringType> = P.regexp(/\w+/)
+    .map<StringType>(str => ({type: "string", value: str}))
     .desc("string");
 
-const Value = P.alt(Num.skip(P.eof), String);
+const Num: P.Parser<NumberType> = P.regexp(/[0-9]+/)
+    .notFollowedBy(String)
+    .map<NumberType>(str => ({type: "number", value: Number(str)}))
+    .desc("number");
+
+
+
+const Value = P.alt<ValueType>(Num, String);
 
 // A basic unit is any parenthesized expression or a number.
-const Unit = P.lazy(() => 
+const Unit: P.Parser<ExpressionType> = P.lazy(() => 
     OPEN_PAR.then(Expression).skip(CLOSE_PAR)
     .or(Function)
     .or(Value)
 )
 
-// Now we can describe the operators in order by precedence. You just need to
-// re-order the table.
-const table = [
-    { type: PREFIX, ops: operators({ Negate: "-" }) },
-    { type: POSTFIX, ops: operators({ Factorial: "!" }) },
-    { type: BINARY_RIGHT, ops: operators({ Exponentiate: "^" }) },
-    { type: BINARY_LEFT, ops: operators({ Multiply: "*", Divide: "/" }) },
-    { type: BINARY_LEFT, ops: operators({ Add: "+", Subtract: "-" }) }
+// Operators in order by precedence.
+// Order of elements in the array matters here!
+const table: MathOperatorDefinition[] = [
+    { type: PREFIX, ops: mathOperators({ Negate: "-" }) },
+    { type: POSTFIX, ops: mathOperators({ Factorial: "!" }) },
+    { type: BINARY_RIGHT, ops: mathOperators({ Exponentiate: "^" }) },
+    { type: BINARY_LEFT, ops: mathOperators({ Multiply: "*", Divide: "/" }) },
+    { type: BINARY_LEFT, ops: mathOperators({ Add: "+", Subtract: "-" }) }
   ];
-  
+
 // Start off with Unit as the base parser for numbers and thread that through the
 // entire table of operator parsers.
-const tableParser = table.reduce(
+const tableParser: P.Parser<ExpressionType> = table.reduce<P.Parser<ExpressionType>>(
     (acc, level) => level.type(level.ops, acc),
     Unit
 );
 
-const Expression = tableParser.trim(_)
+const Expression: P.Parser<ExpressionType> = tableParser.trim(_)
 
 const grammar = P.seq(EQUALS, Expression)
     .or(Value)
 
-let ast = grammar.parse("=34")
-// let ast = grammar.parse("=1+2*SUM(3,1+3, a)")
+// let ast = grammar.parse("=3s4")
+// let ast = grammar.parse("=-1+2*SUM(3,a3+3a, a)")
 // let ast = grammar.parse("=1*2+SUM(SUM(1,2), SUB(2,1))")
-console.log(inspect(ast, {showHidden: true, depth: 8, colors: true}));
+// let ast = grammar.parse("=SUM(SUB(1,2))")
+// let ast = grammar.parse("=1+2")
+let ast = grammar.parse("=--(1!)+-(2*-SUM(3,2))")
+console.log(inspect(ast, {showHidden: true, depth: 12, colors: true}));
+
+// const gds = ast as P.Success<["=", RecursiveExpression]>
+// console.log((gds.value[1] as BaseType).type)
+
 
 // TODO 
-// * AST traversal (also processing when there is no starting '=' (directly having a string or number - no expression))
 // * Generalize functions definition, as well as .exec in order to compute their values
 // * function args validation
+// * AST traversal (also processing when there is no starting '=' (directly having a string or number - no expression))
