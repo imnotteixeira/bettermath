@@ -10,7 +10,8 @@ const COMMA = P.string(",")
 
 const FN_NAME = P.alt(
     P.string("SUM"),
-    P.string("SUB")
+    P.string("SUB"),
+    P.string("CONCAT"),
 )
 
 const Function = P.lazy(() => 
@@ -153,24 +154,55 @@ const BINARY_LEFT: MathOperatorType = (operatorsParser, nextParser) => {
     );
 }
 
-const String: P.Parser<StringType> = P.regexp(/\w+/)
+// Turn escaped characters into real ones (e.g. "\\n" becomes "\n").
+const interpretEscapes = (str: string) => {
+    let escapes: Record<string, string> = {
+      b: "\b",
+      f: "\f",
+      n: "\n",
+      r: "\r",
+      t: "\t"
+    };
+    return str.replace(/\\(u[0-9a-fA-F]{4}|[^u])/, (_, escape) => {
+      let type = escape.charAt(0);
+      let hex = escape.slice(1);
+      if (type === "u") {
+        return String.fromCharCode(parseInt(hex, 16));
+      }
+      if (escapes.hasOwnProperty(type)) {
+        return escapes[type];
+      }
+      return type;
+    });
+  }
+
+const QuotedString: P.Parser<StringType> = P.regexp(/"((?:\\.|.)*?)"/, 1)
+    .map(interpretEscapes)
     .map<StringType>(str => ({type: "string", value: str}))
     .desc("string");
 
-const Num: P.Parser<NumberType> = P.regexp(/[0-9]+/)
-    .notFollowedBy(String)
+const Word: P.Parser<StringType> = P.regexp(/\w+/)
+    .map<StringType>(str => ({type: "string", value: str}))
+    .desc("string");
+
+const RawString: P.Parser<StringType> = P.regexp(/^(?!=).+$/)
+    .map<StringType>(str => ({type: "string", value: str}))
+    .desc("string");
+
+const Num: P.Parser<NumberType> = P.regexp(/-?(0|[1-9][0-9]*)([.][0-9]+)?([eE][+-]?[0-9]+)?/)
+    .notFollowedBy(Word)
     .map<NumberType>(str => ({type: "number", value: Number(str)}))
     .desc("number");
 
 
+const ExpressionValue = P.alt<ValueType>(Num, QuotedString);
+const ImmediateValue = P.alt<ValueType>(Num.notFollowedBy(RawString), RawString);
 
-const Value = P.alt<ValueType>(Num, String);
-
-// A basic unit is any parenthesized expression or a number.
+// A basic unit is any parenthesized expression, a number, or a quoted string.
 const Unit: P.Parser<ExpressionType> = P.lazy(() => 
     OPEN_PAR.then(Expression).skip(CLOSE_PAR)
     .or(Function)
-    .or(Value)
+    .or(ExpressionValue)
 )
 
 // Operators in order by precedence.
@@ -193,7 +225,7 @@ const tableParser: P.Parser<ExpressionType> = table.reduce<P.Parser<ExpressionTy
 const Expression: P.Parser<ExpressionType> = tableParser.trim(_)
 
 const grammar: P.Parser<ExpressionType> = P.seq(EQUALS, Expression).map(([_, exp]) => exp)
-    .or(Value)
+    .or(ImmediateValue)
 
 // let ast = grammar.parse("=3s4")
 // let ast = grammar.parse("=-1+2*SUM(3,a3+3a, a)")
