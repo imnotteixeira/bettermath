@@ -27,10 +27,15 @@ const FN_NAME: P.Parser<FunctionName> = P.alt<FunctionName>(
 );
 
 const Function = P.lazy(() =>
-    P.seqObj<FunctionType<any, any>>(["fn", FN_NAME], OPEN_PAR, ["args", FnArgs], CLOSE_PAR).map<
-        FunctionType<any, any>
-    >((params: { fn: FunctionName; args: IFunctionArg<any>[] }) =>
-        FunctionDefinitions[params.fn](params.args),
+    P.seqObj<FunctionType<any>>(
+        ["fn", FN_NAME],
+        OPEN_PAR,
+        ["indexInfo", P.index],
+        ["args", FnArgs],
+        CLOSE_PAR,
+    ).map<FunctionType<any>>(
+        (params: { fn: FunctionName; args: IFunctionArg<any>[]; indexInfo: P.Index }) =>
+            FunctionDefinitions[params.fn](params.args, params.indexInfo),
     ),
 );
 
@@ -71,11 +76,19 @@ function mathOperators(ops: Partial<Record<FunctionName, string>>): P.Parser<Fun
 // valid for there to be zero occurrences of the prefix operator.
 const PREFIX: MathOperatorType = (operatorsParser, nextParser) => {
     const parser: P.Parser<IExpressionType<any>> = P.lazy(() => {
-        return P.seq<FunctionName, IExpressionType<any>>(operatorsParser, parser)
-            .map<IFunction<any, any>>(([op, exp]: [FunctionName, IExpressionType<any>]) =>
-                FunctionDefinitions[op]([exp]),
+        return (
+            P.seqMap<FunctionName, IExpressionType<any>, P.Index, IExpressionType<any>>(
+                operatorsParser,
+                parser,
+                P.index,
+                (op: FunctionName, exp: IExpressionType<any>, index: P.Index) =>
+                    FunctionDefinitions[op]([exp], index),
             )
-            .or<IExpressionType<any>>(nextParser);
+                // .map<IFunction<any>>(([op, exp, index]: [FunctionName, IExpressionType<any>, ]) =>
+                //     FunctionDefinitions[op]([exp]),
+                // )
+                .or<IExpressionType<any>>(nextParser)
+        );
     });
     return parser;
 };
@@ -99,13 +112,14 @@ const POSTFIX: MathOperatorType = (operatorsParser, nextParser) => {
     // INPUT  :: "4!!!"
     // PARSE  :: [4, "factorial", "factorial", "factorial"]
     // REDUCE :: ["factorial", ["factorial", ["factorial", 4]]]
-    return P.seqMap<IExpressionType<any>, FunctionName[], IExpressionType<any>>(
+    return P.seqMap<IExpressionType<any>, FunctionName[], P.Index, IExpressionType<any>>(
         nextParser,
         operatorsParser.many(),
-        (x, suffixes) =>
+        P.index,
+        (x, suffixes, index) =>
             suffixes.reduceRight<IExpressionType<any>>(
                 (acc: IExpressionType<any>, currentSuffix: FunctionName) =>
-                    FunctionDefinitions[currentSuffix]([acc]),
+                    FunctionDefinitions[currentSuffix]([acc], index),
                 x,
             ),
     );
@@ -118,19 +132,24 @@ const POSTFIX: MathOperatorType = (operatorsParser, nextParser) => {
 const BINARY_RIGHT: MathOperatorType = (operatorsParser, nextParser) => {
     let parser: P.Parser<IExpressionType<any>> = P.lazy(() =>
         nextParser.chain<IExpressionType<any>>(next =>
-            P.seq<FunctionName, IExpressionType<any>, IExpressionType<any>>(
+            P.seqMap<
+                FunctionName,
+                IExpressionType<any>,
+                IExpressionType<any>,
+                P.Index,
+                IExpressionType<any>
+            >(
                 operatorsParser,
                 P.of(next),
                 parser,
-            )
-                .map<IExpressionType<any>>(
-                    ([operator, leftExp, rightExp]: [
-                        FunctionName,
-                        IExpressionType<any>,
-                        IExpressionType<any>,
-                    ]) => FunctionDefinitions[operator]([leftExp, rightExp]),
-                )
-                .or<IExpressionType<any>>(P.of(next)),
+                P.index,
+                (
+                    operator: FunctionName,
+                    leftExp: IExpressionType<any>,
+                    rightExp: IExpressionType<any>,
+                    index: P.Index,
+                ) => FunctionDefinitions[operator]([leftExp, rightExp], index),
+            ).or<IExpressionType<any>>(P.of(next)),
         ),
     );
     return parser;
@@ -154,15 +173,17 @@ const BINARY_LEFT: MathOperatorType = (operatorsParser, nextParser) => {
     return P.seqMap<
         IExpressionType<any>,
         [FunctionName, IExpressionType<any>][],
+        P.Index,
         IExpressionType<any>
     >(
         nextParser,
         P.seq<FunctionName, IExpressionType<any>>(operatorsParser, nextParser).many(),
-        (first, rest) => {
+        P.index,
+        (first, rest, index) => {
             return rest.reduce<IExpressionType<any>>(
                 (acc: IExpressionType<any>, ch: [FunctionName, IExpressionType<any>]) => {
                     let [op, another] = ch;
-                    return FunctionDefinitions[op]([acc, another]);
+                    return FunctionDefinitions[op]([acc, another], index);
                 },
                 first,
             );
@@ -172,7 +193,7 @@ const BINARY_LEFT: MathOperatorType = (operatorsParser, nextParser) => {
 
 // Turn escaped characters into real ones (e.g. "\\n" becomes "\n").
 const interpretEscapes = (str: string) => {
-    let escapes: Record<string, string> = {
+    const escapes: Record<string, string> = {
         b: "\b",
         f: "\f",
         n: "\n",
@@ -181,8 +202,8 @@ const interpretEscapes = (str: string) => {
         '"': '"',
     };
     return str.replace(/\\(u[0-9a-fA-F]{4}|[^u])/g, (_, escape) => {
-        let type = escape.charAt(0);
-        let hex = escape.slice(1);
+        const type = escape.charAt(0);
+        const hex = escape.slice(1);
         if (type === "u") {
             return String.fromCharCode(parseInt(hex, 16));
         }
@@ -246,18 +267,29 @@ const grammar: P.Parser<IExpressionType<any>> = P.seq(EQUALS, Expression)
     .map(([_, exp]) => exp)
     .or(ImmediateValue);
 
-// let ast = grammar.parse("=3s4")
+
+const INPUT = '=5+"2"'
+// let ast = grammar.parse('=5*2*-(3-3)');
+let ast = grammar.parse(INPUT);
 // let ast = grammar.parse("=-1+2*SUM(3,a3+3a, a)")
 // let ast = grammar.parse("=1*2+SUM(SUM(1,2), SUB(2,1))")
 // let ast = grammar.parse("=SUM(SUB(1,2))")
 // let ast = grammar.parse("=1+2")
 // let ast = grammar.parse("=--(1!)+-(2*-SUM(3,2))")
-// console.log(inspect(ast, {showHidden: true, depth: 12, colors: true}));
+console.log(inspect(ast, { showHidden: true, depth: 12, colors: true }));
 
-// const gds = ast as P.Success<["=", RecursiveExpression]>
-// console.log((gds.value[1] as IBaseType).type)
+console.log(
+    inspect((ast as P.Success<IExpressionType<any>>).value.validate(), {
+        showHidden: true,
+        depth: 12,
+        colors: true,
+    }),
+);
+
+console.log("INITIAL INPUT:", INPUT)
 
 export default grammar;
 
 // TODO
-// * function args validation
+//  function args validation for other functions (update negate to actual validation)
+//  input validation tests

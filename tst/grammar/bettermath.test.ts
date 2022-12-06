@@ -62,10 +62,9 @@ describe("Grammar", () => {
                     new NumberType("12"),
                 ]);
 
-                const parsingResult = cellFunctionParser.tryParse("=CONCAT(12, 12)") as IFunction<
-                    any,
-                    string
-                >;
+                const parsingResult = cellFunctionParser.tryParse(
+                    "=CONCAT(12, 12)",
+                ) as IFunction<string>;
 
                 expect(parsingResult.args.map(arg => arg.getValue())).toEqual([12, 12]);
 
@@ -80,7 +79,7 @@ describe("Grammar", () => {
 
                 const parsingResult = cellFunctionParser.tryParse(
                     '=CONCAT("12", "12")',
-                ) as IFunction<any, string>;
+                ) as IFunction<string>;
 
                 expect(parsingResult.args.map(arg => arg.getValue())).toEqual(["12", "12"]);
 
@@ -93,10 +92,9 @@ describe("Grammar", () => {
                     new StringType("12"),
                 ]);
 
-                const parsingResult = cellFunctionParser.tryParse('=CONCAT(12, "12")') as IFunction<
-                    any,
-                    string
-                >;
+                const parsingResult = cellFunctionParser.tryParse(
+                    '=CONCAT(12, "12")',
+                ) as IFunction<string>;
 
                 expect(parsingResult.args.map(arg => arg.getValue())).toEqual([12, "12"]);
 
@@ -126,7 +124,7 @@ describe("Grammar", () => {
 
                 const parsingResult = cellFunctionParser.tryParse(
                     '=CONCAT(12, "\\"12")',
-                ) as IFunction<any, string>;
+                ) as IFunction<string>;
 
                 expect(parsingResult.args.map(arg => arg.getValue())).toEqual([12, '"12']);
 
@@ -141,7 +139,7 @@ describe("Grammar", () => {
 
                 const parsingResult = cellFunctionParser.tryParse(
                     '=CONCAT(12, "\\"\\"12\\"\\"")',
-                ) as IFunction<any, string>;
+                ) as IFunction<string>;
 
                 expect(parsingResult.args.map(arg => arg.getValue())).toEqual([12, '""12""']);
 
@@ -156,7 +154,7 @@ describe("Grammar", () => {
 
                 const parsingResult = cellFunctionParser.tryParse(
                     '=CONCAT(12, "\\"12")',
-                ) as IFunction<any, string>;
+                ) as IFunction<string>;
 
                 expect(parsingResult.args.map(arg => arg.getValue())).toEqual([12, '"12']);
 
@@ -184,10 +182,7 @@ describe("Grammar", () => {
                 test("should parse negated number", () => {
                     const expectedExpression = new NegateFunction([new NumberType("12")]);
 
-                    const parsingResult = cellFunctionParser.tryParse("=-12") as IFunction<
-                        any,
-                        string
-                    >;
+                    const parsingResult = cellFunctionParser.tryParse("=-12") as IFunction<string>;
 
                     expect(parsingResult.args.map(arg => arg.getValue())).toEqual([12]);
 
@@ -200,10 +195,9 @@ describe("Grammar", () => {
                         new NumberType("12"),
                     ]);
 
-                    const parsingResult = cellFunctionParser.tryParse("=11-12") as IFunction<
-                        any,
-                        string
-                    >;
+                    const parsingResult = cellFunctionParser.tryParse(
+                        "=11-12",
+                    ) as IFunction<string>;
 
                     expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 12]);
 
@@ -216,10 +210,9 @@ describe("Grammar", () => {
                         new NumberType("13"),
                     ]);
 
-                    const parsingResult = cellFunctionParser.tryParse("=11-12-13") as IFunction<
-                        any,
-                        string
-                    >;
+                    const parsingResult = cellFunctionParser.tryParse(
+                        "=11-12-13",
+                    ) as IFunction<string>;
 
                     expect(parsingResult.args.map(arg => arg.getValue())).toEqual([-1, 13]);
 
@@ -233,10 +226,9 @@ describe("Grammar", () => {
                             new NumberType("12"),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=11+12") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=11+12",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 12]);
 
@@ -251,10 +243,9 @@ describe("Grammar", () => {
                             new NumberType("13"),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=11+12+13") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=11+12+13",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([23, 13]);
 
@@ -271,10 +262,9 @@ describe("Grammar", () => {
                             new NumberType("12"),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=11*12") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=11*12",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 12]);
 
@@ -289,10 +279,9 @@ describe("Grammar", () => {
                             new NumberType("13"),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=11*12*13") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=11*12*13",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([132, 13]);
 
@@ -309,10 +298,9 @@ describe("Grammar", () => {
                             new NumberType("12"),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=11/12") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=11/12",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 12]);
 
@@ -327,10 +315,9 @@ describe("Grammar", () => {
                             new NumberType("13"),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=11/12/13") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=11/12/13",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([
                             11 / 12,
@@ -350,10 +337,9 @@ describe("Grammar", () => {
                             new NumberType("3"),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=2^3") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=2^3",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([2, 3]);
 
@@ -367,10 +353,9 @@ describe("Grammar", () => {
                             new ExponentiateFunction([new NumberType("3"), new NumberType("4")]),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=2^3^4") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=2^3^4",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([
                             2,
@@ -387,10 +372,9 @@ describe("Grammar", () => {
                     test("should parse Factorial", () => {
                         const expectedExpression = new FactorialFunction([new NumberType("2")]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=2!") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=2!",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([2]);
 
@@ -404,10 +388,9 @@ describe("Grammar", () => {
                             new FactorialFunction([new NumberType("3")]),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=3!!") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=3!!",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([6]);
 
@@ -423,10 +406,9 @@ describe("Grammar", () => {
                             new NegateFunction([new NumberType("11")]),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=-11!") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=-11!",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([-11]);
 
@@ -441,10 +423,9 @@ describe("Grammar", () => {
                             new FactorialFunction([new NumberType("12")]),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=11^12!") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=11^12!",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([
                             11, 479001600,
@@ -461,10 +442,9 @@ describe("Grammar", () => {
                             new ExponentiateFunction([new NumberType("2"), new NumberType("3")]),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=11*2^3") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=11*2^3",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 8]);
 
@@ -479,10 +459,9 @@ describe("Grammar", () => {
                             new ExponentiateFunction([new NumberType("2"), new NumberType("3")]),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=11/2^3") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=11/2^3",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 8]);
 
@@ -497,10 +476,9 @@ describe("Grammar", () => {
                             new MultiplyFunction([new NumberType("12"), new NumberType("13")]),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=11+12*13") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=11+12*13",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 156]);
 
@@ -515,10 +493,9 @@ describe("Grammar", () => {
                             new MultiplyFunction([new NumberType("12"), new NumberType("13")]),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=11-12*13") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=11-12*13",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 156]);
 
@@ -533,10 +510,9 @@ describe("Grammar", () => {
                             new DivideFunction([new NumberType("12"), new NumberType("13")]),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=11+12/13") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=11+12/13",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([
                             11,
@@ -554,10 +530,9 @@ describe("Grammar", () => {
                             new DivideFunction([new NumberType("12"), new NumberType("13")]),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=11-12/13") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=11-12/13",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([
                             11,
@@ -577,7 +552,7 @@ describe("Grammar", () => {
 
                         const parsingResult1 = cellFunctionParser.tryParse(
                             "=11*12/13",
-                        ) as IFunction<any, string>;
+                        ) as IFunction<string>;
 
                         expect(parsingResult1.args.map(arg => arg.getValue())).toEqual([132, 13]);
 
@@ -592,7 +567,7 @@ describe("Grammar", () => {
 
                         const parsingResult2 = cellFunctionParser.tryParse(
                             "=11/12*13",
-                        ) as IFunction<any, string>;
+                        ) as IFunction<string>;
 
                         expect(parsingResult2.args.map(arg => arg.getValue())).toEqual([
                             11 / 12,
@@ -612,7 +587,7 @@ describe("Grammar", () => {
 
                         const parsingResult1 = cellFunctionParser.tryParse(
                             "=11+12-13",
-                        ) as IFunction<any, string>;
+                        ) as IFunction<string>;
 
                         expect(parsingResult1.args.map(arg => arg.getValue())).toEqual([23, 13]);
 
@@ -627,7 +602,7 @@ describe("Grammar", () => {
 
                         const parsingResult2 = cellFunctionParser.tryParse(
                             "=11-12+13",
-                        ) as IFunction<any, string>;
+                        ) as IFunction<string>;
 
                         expect(parsingResult2.args.map(arg => arg.getValue())).toEqual([-1, 13]);
 
@@ -641,10 +616,9 @@ describe("Grammar", () => {
                             new AddFunction([new NumberType("11"), new NumberType("12")]),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse("=-(11+12)") as IFunction<
-                            any,
-                            string
-                        >;
+                        const parsingResult = cellFunctionParser.tryParse(
+                            "=-(11+12)",
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([23]);
 
@@ -661,7 +635,7 @@ describe("Grammar", () => {
 
                         const parsingResult = cellFunctionParser.tryParse(
                             "=11-SUM(12,13)",
-                        ) as IFunction<any, string>;
+                        ) as IFunction<string>;
 
                         expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 25]);
 
