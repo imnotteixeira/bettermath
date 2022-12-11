@@ -2,23 +2,18 @@ import { inspect } from "util";
 import type P from "parsimmon";
 
 import cellFunctionParser from "../../src/grammar/bettermath";
+import { IExpressionType, NumberType, StringType } from "../../src/grammar/definitions";
 import {
-    AddFunction,
     ConcatFunction,
+    NegateFunction,
+    SubtractFunction,
+    AddFunction,
+    MultiplyFunction,
     DivideFunction,
     ExponentiateFunction,
     FactorialFunction,
-    FunctionType,
-    IExpressionType,
-    IFunction,
-    INumberType,
-    IStringType,
-    MultiplyFunction,
-    NegateFunction,
-    NumberType,
-    StringType,
-    SubtractFunction,
-} from "../../src/grammar/definitions";
+} from "../../src/grammar/functions";
+import { IFunction } from "../../src/grammar/functions/types";
 
 describe("Grammar", () => {
     describe("Immediate Values", () => {

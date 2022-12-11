@@ -1,20 +1,17 @@
 import { inspect } from "util";
-import * as P from "parsimmon";
+import P from "parsimmon";
 import {
     IExpressionType,
-    IFunction,
-    IFunctionArg,
     MathOperatorDefinition,
     MathOperatorType,
     INumberType,
     IStringType,
-    FunctionType,
     StringType,
     NumberType,
     IValueType,
-    FunctionName,
-    FunctionDefinitions,
 } from "./definitions";
+import { FunctionType, IFunctionArg } from "./functions/types";
+import { FunctionDefinitions, FunctionName } from "./functions";
 
 const _ = P.optWhitespace;
 const EQUALS = P.string("=");
@@ -278,6 +275,13 @@ let ast = grammar.parse(INPUT);
 // let ast = grammar.parse("=--(1!)+-(2*-SUM(3,2))")
 console.log(inspect(ast, { showHidden: true, depth: 12, colors: true }));
 
+
+// validate works on node level
+//     - each node validates itself by checking its direct children types (only applies to functions -numbers and strings are valid by default)
+//     - need to have a map from fnName to its return type so that validation can use that without computing values
+//     -have a validate function that receives the AST and validates all nodes
+//     - store the components index on the input string (Expression -> index on string) so that validation can point to correct place
+
 console.log(
     inspect((ast as P.Success<IExpressionType<any>>).value.validate(), {
         showHidden: true,
@@ -291,5 +295,5 @@ console.log("INITIAL INPUT:", INPUT)
 export default grammar;
 
 // TODO
-//  function args validation for other functions (update negate to actual validation)
+//  function args validation for other functions
 //  input validation tests
