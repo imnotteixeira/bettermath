@@ -19,6 +19,7 @@ export const FunctionRegistry = {
     Exponentiate: (indexInfo: Index, args: IFunctionArg<number>[]) => new ExponentiateFunction(indexInfo, args),
     Factorial: (indexInfo: Index, args: IFunctionArg<number>[]) => new FactorialFunction(indexInfo, args),
     Negate: (indexInfo: Index, args: IFunctionArg<number>[]) => new NegateFunction(indexInfo, args),
+    NEGATE: (indexInfo: Index, args: IFunctionArg<number>[]) => new NegateFunction(indexInfo, args),
     CONCAT: (indexInfo: Index, args: IFunctionArg<any>[]) => new ConcatFunction(indexInfo, args),
 };
 

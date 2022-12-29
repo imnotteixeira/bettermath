@@ -7,15 +7,20 @@ export class AddFunction extends FunctionType<number> {
     readonly returnType = Types.NUMBER;
 
     constructor(indexInfo: Index, args: IFunctionArg<any>[]) {
-        super(indexInfo, "Add", [args[0], args[1]]);
+        super(indexInfo, "Add", args);
     }
 
     getValue = () => this.args[0].getValue() + this.args[1].getValue();
 
     protected validateArgs: FunctionArgsValidator = (args: IFunctionArg<any>[], onSuccess: () => void, onFailure: (_: ValidationError[]) => void) => {
+        if(args.length !== 2) {
+            return onFailure([{
+                index: this.indexInfo,
+                message: `Add function takes exactly 2 arguments. ${args.length} received instead.`
+            }])
+        }
         const argErrors: ValidationError[] = [];
         args.forEach((arg: BaseType<any>, i: number) => {
-            console.log("arg is ", arg.getValue(), "index info is", arg.indexInfo)
 
             if(arg.type === Types.NUMBER
                 || (arg.type === Types.FUNCTION && (arg as IFunction<any>).returnType === Types.NUMBER)

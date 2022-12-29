@@ -7,13 +7,22 @@ export class NegateFunction extends FunctionType<number> {
     readonly returnType = Types.NUMBER;
     
     constructor(indexInfo: Index, args: IFunctionArg<any>[]) {
-        super(indexInfo, "Negate", [args[0]], );
+        super(indexInfo, "Negate", args);
     }
 
     getValue = () => -this.args[0].getValue();
 
     validateArgs: FunctionArgsValidator = (args: IFunctionArg<any>[], onSuccess: () => void, onFailure: (errors: ValidationError[]) => void) => {
+        
+        if(args.length !== 1) {
+            return onFailure([{
+                index: this.indexInfo,
+                message: `Negate function takes exactly 1 argument. ${args.length} received instead.`
+            }])
+        }
+        
         const argErrors: ValidationError[] = [];
+        
         args.forEach((arg: BaseType<any>, i: number) => {
             console.log("arg is ", arg.getValue(), "index info is", arg.indexInfo)
 

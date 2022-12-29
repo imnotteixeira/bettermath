@@ -6,7 +6,7 @@ export class DivideFunction extends FunctionType<number> {
     readonly returnType = Types.NUMBER;
     
     constructor(indexInfo: Index, args: IFunctionArg<any>[]) {
-        super(indexInfo, "Divide", [args[0], args[1]]);
+        super(indexInfo, "Divide", args);
     }
 
     getValue = () => this.args[0].getValue() / this.args[1].getValue();

@@ -6,7 +6,7 @@ export class FactorialFunction extends FunctionType<number> {
     readonly returnType = Types.NUMBER;
     
     constructor(indexInfo: Index, args: IFunctionArg<any>[]) {
-        super(indexInfo, "Factorial", [args[0]]);
+        super(indexInfo, "Factorial", args);
     }
 
     getValue = () => this.calculateFactorial(this.args[0].getValue());

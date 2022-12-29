@@ -272,25 +272,25 @@ const grammar: P.Parser<IExpressionType<any>> = P.seq(EQUALS, Expression)
     .or(ImmediateValue);
 
 
-const INPUT = '=CONCAT(1,-"2") + 1 + CONCAT(1,-"2")'
-let ast = grammar.parse(INPUT);
+// const INPUT = '=CONCAT(1,-"2") + 1 + CONCAT(1,-"2")'
+// let ast = grammar.parse(INPUT);
 // let ast = grammar.parse('=5*2*-(3-3)');
 // let ast = grammar.parse("=-1+2*SUM(3,a3+3a, a)")
 // let ast = grammar.parse("=1*2+SUM(SUM(1,2), SUB(2,1))")
 // let ast = grammar.parse("=SUM(SUB(1,2))")
 // let ast = grammar.parse("=1+2")
 // let ast = grammar.parse("=--(1!)+-(2*-SUM(3,2))")
-console.log(inspect(ast, { showHidden: true, depth: 12, colors: true }));
+// console.log(inspect(ast, { showHidden: true, depth: 12, colors: true }));
 
-console.log(
-    inspect(validate(ast), {
-        showHidden: true,
-        depth: 12,
-        colors: true,
-    }),
-);
+// console.log(
+//     inspect(validate(ast), {
+//         showHidden: true,
+//         depth: 12,
+//         colors: true,
+//     }),
+// );
 
-console.log("INITIAL INPUT:", INPUT)
+// console.log("INITIAL INPUT:", INPUT)
 
 export default grammar;
 
