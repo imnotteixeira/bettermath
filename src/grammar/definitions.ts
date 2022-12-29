@@ -1,12 +1,20 @@
 import type P from "parsimmon";
+import type { Index } from "parsimmon";
 import { FunctionName } from "./functions";
 import { IFunction } from "./functions/types";
-import { Success, ValidationResult } from "./inputValidation";
+import { makeSuccess, ValidationResult } from "./validator";
 
-type AllowedType = "string" | "number" | "function";
+export enum Types {
+    STRING = "string",
+    NUMBER = "number",
+    FUNCTION = "function"
+}
+
+type AllowedType = Types;
 
 export interface IBaseType<T> {
     type: AllowedType;
+    indexInfo: Index;
     getValue: () => T;
 
     validate: () => ValidationResult;
@@ -14,45 +22,50 @@ export interface IBaseType<T> {
 
 export abstract class BaseType<T> implements IBaseType<T> {
     abstract type: AllowedType;
+    readonly indexInfo: Index;
 
     abstract getValue: () => T;
     abstract validate: () => ValidationResult;
+
+    constructor(indexInfo: Index) {
+        this.indexInfo = indexInfo;
+    }
 }
 
 export interface IStringType extends IBaseType<string> {
-    type: "string";
+    type: Types.STRING;
     value: string;
 }
 
 export class StringType extends BaseType<string> implements IStringType {
-    readonly type = "string";
+    readonly type = Types.STRING;
     readonly value: string;
 
-    constructor(str: string) {
-        super();
+    constructor(indexInfo: Index, str: string) {
+        super(indexInfo);
         this.value = str;
     }
 
     getValue = () => this.value;
-    validate = () => new Success();
+    validate = () => makeSuccess();
 }
 
 export interface INumberType extends IBaseType<number> {
-    type: "number";
+    type: Types.NUMBER;
     value: number;
 }
 
 export class NumberType extends BaseType<number> implements INumberType {
-    readonly type = "number";
+    readonly type = Types.NUMBER;
     readonly value: number;
 
-    constructor(num: string) {
-        super();
+    constructor(indexInfo: Index, num: string) {
+        super(indexInfo);
         this.value = Number(num);
     }
 
     getValue = () => this.value;
-    validate = () => new Success();
+    validate = () => makeSuccess();
 }
 
 export type IValueType<T> = IBaseType<T>;

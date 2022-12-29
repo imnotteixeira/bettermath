@@ -1,5 +1,5 @@
 import { inspect } from "util";
-import P from "parsimmon";
+import P, { Index } from "parsimmon";
 import {
     IExpressionType,
     MathOperatorDefinition,
@@ -11,7 +11,8 @@ import {
     IValueType,
 } from "./definitions";
 import { FunctionType, IFunctionArg } from "./functions/types";
-import { FunctionDefinitions, FunctionName } from "./functions";
+import { FunctionRegistry, FunctionName } from "./functions";
+import { validate } from "./validator";
 
 const _ = P.optWhitespace;
 const EQUALS = P.string("=");
@@ -20,7 +21,7 @@ const CLOSE_PAR = P.string(")");
 const COMMA = P.string(",");
 
 const FN_NAME: P.Parser<FunctionName> = P.alt<FunctionName>(
-    ...(Object.keys(FunctionDefinitions) as FunctionName[]).map(fn => P.string<FunctionName>(fn)),
+    ...(Object.keys(FunctionRegistry) as FunctionName[]).map(fn => P.string<FunctionName>(fn)),
 );
 
 const Function = P.lazy(() =>
@@ -32,7 +33,7 @@ const Function = P.lazy(() =>
         CLOSE_PAR,
     ).map<FunctionType<any>>(
         (params: { fn: FunctionName; args: IFunctionArg<any>[]; indexInfo: P.Index }) =>
-            FunctionDefinitions[params.fn](params.args, params.indexInfo),
+            FunctionRegistry[params.fn](params.indexInfo, params.args),
     ),
 );
 
@@ -79,10 +80,10 @@ const PREFIX: MathOperatorType = (operatorsParser, nextParser) => {
                 parser,
                 P.index,
                 (op: FunctionName, exp: IExpressionType<any>, index: P.Index) =>
-                    FunctionDefinitions[op]([exp], index),
+                    FunctionRegistry[op](index, [exp]),
             )
                 // .map<IFunction<any>>(([op, exp, index]: [FunctionName, IExpressionType<any>, ]) =>
-                //     FunctionDefinitions[op]([exp]),
+                //     FunctionRegistry[op]([exp]),
                 // )
                 .or<IExpressionType<any>>(nextParser)
         );
@@ -116,7 +117,7 @@ const POSTFIX: MathOperatorType = (operatorsParser, nextParser) => {
         (x, suffixes, index) =>
             suffixes.reduceRight<IExpressionType<any>>(
                 (acc: IExpressionType<any>, currentSuffix: FunctionName) =>
-                    FunctionDefinitions[currentSuffix]([acc], index),
+                    FunctionRegistry[currentSuffix](index, [acc]),
                 x,
             ),
     );
@@ -145,7 +146,7 @@ const BINARY_RIGHT: MathOperatorType = (operatorsParser, nextParser) => {
                     leftExp: IExpressionType<any>,
                     rightExp: IExpressionType<any>,
                     index: P.Index,
-                ) => FunctionDefinitions[operator]([leftExp, rightExp], index),
+                ) => FunctionRegistry[operator](index, [leftExp, rightExp]),
             ).or<IExpressionType<any>>(P.of(next)),
         ),
     );
@@ -180,7 +181,7 @@ const BINARY_LEFT: MathOperatorType = (operatorsParser, nextParser) => {
             return rest.reduce<IExpressionType<any>>(
                 (acc: IExpressionType<any>, ch: [FunctionName, IExpressionType<any>]) => {
                     let [op, another] = ch;
-                    return FunctionDefinitions[op]([acc, another], index);
+                    return FunctionRegistry[op](index, [acc, another]);
                 },
                 first,
             );
@@ -212,23 +213,29 @@ const interpretEscapes = (str: string) => {
     });
 };
 
-const QuotedString: P.Parser<IStringType> = P.regexp(/"((?:\\.|.)*?)"/, 1)
-    .map(interpretEscapes)
-    .map<StringType>(str => new StringType(str))
-    .desc("string");
+const QuotedString: P.Parser<IStringType> = P.seqMap<string, Index, IStringType>(
+    P.regexp(/"((?:\\.|.)*?)"/, 1).map(interpretEscapes),
+    P.index,
+    (str: string, indexInfo: Index) => new StringType(indexInfo, str)
+).desc("string");
 
-const Word: P.Parser<IStringType> = P.regexp(/\w+/)
-    .map<StringType>(str => new StringType(str))
-    .desc("string");
+const Word: P.Parser<IStringType> = P.seqMap<string, Index, IStringType>(
+    P.regexp(/\w+/),
+    P.index,
+    (str: string, indexInfo: Index) => new StringType(indexInfo, str)
+).desc("string");
 
-const RawString: P.Parser<IStringType> = P.regexp(/^(?!=).+$/)
-    .map<StringType>(str => new StringType(str))
-    .desc("string");
+const RawString: P.Parser<IStringType> = P.seqMap<string, Index, IStringType>(
+    P.regexp(/^(?!=).+$/),
+    P.index,
+    (str: string, indexInfo: Index) => new StringType(indexInfo, str)
+).desc("string");
 
-const Num: P.Parser<INumberType> = P.regexp(/-?(0|[1-9][0-9]*)([.][0-9]+)?([eE][+-]?[0-9]+)?/)
-    .notFollowedBy(Word)
-    .map<INumberType>(str => new NumberType(str))
-    .desc("number");
+const Num: P.Parser<INumberType> = P.seqMap<string, Index, INumberType>(
+    P.regexp(/-?(0|[1-9][0-9]*)([.][0-9]+)?([eE][+-]?[0-9]+)?/).notFollowedBy(Word),
+    P.index,
+    (str: string, indexInfo: Index) => new NumberType(indexInfo, str)
+).desc("number");
 
 const ExpressionValue = P.alt<IValueType<number> | IValueType<string>>(Num, QuotedString);
 const ImmediateValue = P.alt<IValueType<number> | IValueType<string>>(
@@ -265,9 +272,9 @@ const grammar: P.Parser<IExpressionType<any>> = P.seq(EQUALS, Expression)
     .or(ImmediateValue);
 
 
-const INPUT = '=5+"2"'
-// let ast = grammar.parse('=5*2*-(3-3)');
+const INPUT = '=CONCAT(1,-"2") + 1 + CONCAT(1,-"2")'
 let ast = grammar.parse(INPUT);
+// let ast = grammar.parse('=5*2*-(3-3)');
 // let ast = grammar.parse("=-1+2*SUM(3,a3+3a, a)")
 // let ast = grammar.parse("=1*2+SUM(SUM(1,2), SUB(2,1))")
 // let ast = grammar.parse("=SUM(SUB(1,2))")
@@ -275,15 +282,8 @@ let ast = grammar.parse(INPUT);
 // let ast = grammar.parse("=--(1!)+-(2*-SUM(3,2))")
 console.log(inspect(ast, { showHidden: true, depth: 12, colors: true }));
 
-
-// validate works on node level
-//     - each node validates itself by checking its direct children types (only applies to functions -numbers and strings are valid by default)
-//     - need to have a map from fnName to its return type so that validation can use that without computing values
-//     -have a validate function that receives the AST and validates all nodes
-//     - store the components index on the input string (Expression -> index on string) so that validation can point to correct place
-
 console.log(
-    inspect((ast as P.Success<IExpressionType<any>>).value.validate(), {
+    inspect(validate(ast), {
         showHidden: true,
         depth: 12,
         colors: true,

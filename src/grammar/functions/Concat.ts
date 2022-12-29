@@ -1,9 +1,11 @@
 import type { Index } from "parsimmon";
+import { Types } from "../definitions";
 import { FunctionType, IFunctionArg } from "./types";
 
 export class ConcatFunction extends FunctionType<string> {
-    constructor(args: IFunctionArg<string | number>[], indexInfo: Index) {
-        super("CONCAT", args, indexInfo);
+    readonly returnType = Types.STRING;
+    constructor(indexInfo: Index, args: IFunctionArg<string | number>[]) {
+        super(indexInfo, "CONCAT", args);
     }
 
     getValue = () => this.args.reduce((acc, arg) => acc + arg.getValue(), "");

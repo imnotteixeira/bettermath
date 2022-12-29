@@ -9,20 +9,20 @@ import { NegateFunction } from "./Negate";
 import { SubtractFunction } from "./Subtract";
 import { IFunctionArg } from "./types";
 
-export const FunctionDefinitions = {
-    SUM: (args: IFunctionArg<number>[], indexInfo: Index) => new AddFunction(args, indexInfo),
-    Add: (args: IFunctionArg<number>[], indexInfo: Index) => new AddFunction(args, indexInfo),
-    SUB: (args: IFunctionArg<number>[], indexInfo: Index) => new SubtractFunction(args, indexInfo),
-    Subtract: (args: IFunctionArg<number>[], indexInfo: Index) => new SubtractFunction(args, indexInfo),
-    Multiply: (args: IFunctionArg<number>[], indexInfo: Index) => new MultiplyFunction(args, indexInfo),
-    Divide: (args: IFunctionArg<number>[], indexInfo: Index) => new DivideFunction(args, indexInfo),
-    Exponentiate: (args: IFunctionArg<number>[], indexInfo: Index) => new ExponentiateFunction(args, indexInfo),
-    Factorial: (args: IFunctionArg<number>[], indexInfo: Index) => new FactorialFunction(args, indexInfo),
-    Negate: (args: IFunctionArg<number>[], indexInfo: Index) => new NegateFunction(args, indexInfo),
-    CONCAT: (args: IFunctionArg<any>[], indexInfo: Index) => new ConcatFunction(args, indexInfo),
+export const FunctionRegistry = {
+    SUM: (indexInfo: Index, args: IFunctionArg<number>[]) => new AddFunction(indexInfo, args),
+    Add: (indexInfo: Index, args: IFunctionArg<number>[]) => new AddFunction(indexInfo, args),
+    SUB: (indexInfo: Index, args: IFunctionArg<number>[]) => new SubtractFunction(indexInfo, args),
+    Subtract: (indexInfo: Index, args: IFunctionArg<number>[]) => new SubtractFunction(indexInfo, args),
+    Multiply: (indexInfo: Index, args: IFunctionArg<number>[]) => new MultiplyFunction(indexInfo, args),
+    Divide: (indexInfo: Index, args: IFunctionArg<number>[]) => new DivideFunction(indexInfo, args),
+    Exponentiate: (indexInfo: Index, args: IFunctionArg<number>[]) => new ExponentiateFunction(indexInfo, args),
+    Factorial: (indexInfo: Index, args: IFunctionArg<number>[]) => new FactorialFunction(indexInfo, args),
+    Negate: (indexInfo: Index, args: IFunctionArg<number>[]) => new NegateFunction(indexInfo, args),
+    CONCAT: (indexInfo: Index, args: IFunctionArg<any>[]) => new ConcatFunction(indexInfo, args),
 };
 
-export type FunctionName = keyof typeof FunctionDefinitions;
+export type FunctionName = keyof typeof FunctionRegistry;
 
 export { AddFunction } from "./Add"
 export { SubtractFunction } from "./Subtract"

@@ -1,9 +1,12 @@
 import { Index } from "parsimmon";
+import { Types } from "../definitions";
 import { FunctionType, IFunctionArg } from "./types";
 
 export class FactorialFunction extends FunctionType<number> {
-    constructor(args: IFunctionArg<any>[], indexInfo: Index) {
-        super("Factorial", [args[0]], indexInfo);
+    readonly returnType = Types.NUMBER;
+    
+    constructor(indexInfo: Index, args: IFunctionArg<any>[]) {
+        super(indexInfo, "Factorial", [args[0]]);
     }
 
     getValue = () => this.calculateFactorial(this.args[0].getValue());
