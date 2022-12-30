@@ -1,5 +1,4 @@
 import { Index } from "parsimmon";
-import { FunctionName } from ".";
 import { BaseType, IBaseType, IExpressionType, Types } from "../definitions";
 import { makeSemanticFailure, makeSuccess, ValidationError, ValidationResult } from "../validator";
 
@@ -7,7 +6,7 @@ export type IFunctionArg<T> = IExpressionType<T>;
 
 export interface IFunction<T> extends IBaseType<T> {
     type: Types.FUNCTION;
-    fn: FunctionName;
+    fn: string;
     args: IFunctionArg<any>[];
     returnType: Types;
 
@@ -20,11 +19,11 @@ export type FunctionArgsValidator = (_: IFunctionArg<any>[], onSuccess: () => vo
  */
 export abstract class FunctionType<T> extends BaseType<T> implements IFunction<T> {
     readonly type = Types.FUNCTION;
-    readonly fn: FunctionName;
+    readonly fn: string;
     readonly args: IFunctionArg<any>[];
     abstract readonly returnType: Types;
 
-    constructor(indexInfo: Index, fn: FunctionName, args: IFunctionArg<any>[]) {
+    constructor(indexInfo: Index, fn: string, args: IFunctionArg<any>[]) {
         super(indexInfo);
         this.fn = fn;
         this.args = args;

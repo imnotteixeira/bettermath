@@ -1,7 +1,7 @@
 import type { Index } from "parsimmon";
-import { BaseType, Types } from "../definitions";
-import { ValidationError } from "../validator";
-import { FunctionArgsValidator, FunctionType, IFunction, IFunctionArg } from "./types";
+import { BaseType, Types } from "../../definitions";
+import { ValidationError } from "../../validator";
+import { FunctionArgsValidator, FunctionType, IFunction, IFunctionArg } from "../types";
 
 export class NegateFunction extends FunctionType<number> {
     readonly returnType = Types.NUMBER;

@@ -1,6 +1,5 @@
 import type P from "parsimmon";
 import type { Index } from "parsimmon";
-import { FunctionName } from "./functions";
 import { IFunction } from "./functions/types";
 import { makeSuccess, ValidationResult } from "./validator";
 
@@ -73,11 +72,11 @@ export type IValueType<T> = IBaseType<T>;
 export type IExpressionType<T> = IFunction<T> | IValueType<T>;
 
 export type MathOperatorType = (
-    operatorsParser: P.Parser<FunctionName>,
+    operatorsParser: P.Parser<string>,
     nextParser: P.Parser<IExpressionType<number>>,
 ) => P.Parser<IExpressionType<number>>;
 
 export interface MathOperatorDefinition {
     type: MathOperatorType;
-    ops: P.Parser<FunctionName>;
+    ops: P.Parser<string>;
 }

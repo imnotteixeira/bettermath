@@ -1,7 +1,6 @@
 import { inspect } from "util";
 import type P from "parsimmon";
 
-import cellFunctionParser from "../../src/grammar/bettermath";
 import { IExpressionType, NumberType, StringType } from "../../src/grammar/definitions";
 import {
     ConcatFunction,
@@ -12,9 +11,11 @@ import {
     DivideFunction,
     ExponentiateFunction,
     FactorialFunction,
-} from "../../src/grammar/functions";
+} from "../../src/grammar/functions/base";
 import { IFunction } from "../../src/grammar/functions/types";
 import { makeSemanticFailure, makeSuccess, validate } from "../../src/grammar/validator";
+import buildGrammar from "../../src/grammar/bettermath";
+import { FunctionRegistry } from "../../src/grammar/functions";
 
 describe("Grammar", () => {
     const INDEX_INFO: P.Index = {
@@ -23,19 +24,22 @@ describe("Grammar", () => {
         line: 1,
     };
 
+    const functionRegistry = new FunctionRegistry()
+    const grammar = buildGrammar(functionRegistry);
+
     describe("AST Generation", () => {
         describe("Immediate Values", () => {
             test("should parse number", () => {
                 const expectedNumber = new NumberType(INDEX_INFO, "12");
 
-                expect(cellFunctionParser.tryParse("12").getValue()).toBe(
+                expect(grammar.tryParse("12").getValue()).toBe(
                     expectedNumber.getValue(),
                 );
             });
 
             test("should parse negative number", () => {
                 const expectedNumber = new NumberType(INDEX_INFO, "-12");
-                expect(cellFunctionParser.tryParse("-12").getValue()).toBe(
+                expect(grammar.tryParse("-12").getValue()).toBe(
                     expectedNumber.getValue(),
                 );
             });
@@ -43,7 +47,7 @@ describe("Grammar", () => {
             test("should parse number after EQUALS", () => {
                 const expectedNumber = new NumberType(INDEX_INFO, "12");
 
-                expect(cellFunctionParser.tryParse("=12").getValue()).toBe(
+                expect(grammar.tryParse("=12").getValue()).toBe(
                     expectedNumber.getValue(),
                 );
             });
@@ -51,7 +55,7 @@ describe("Grammar", () => {
             test("should parse string", () => {
                 const expectedString = new StringType(INDEX_INFO, "1+1");
 
-                expect(cellFunctionParser.tryParse("1+1").getValue()).toBe(
+                expect(grammar.tryParse("1+1").getValue()).toBe(
                     expectedString.getValue(),
                 );
             });
@@ -59,7 +63,7 @@ describe("Grammar", () => {
             test("should parse string after EQUALS", () => {
                 const expectedString = new StringType(INDEX_INFO, "asd");
 
-                expect(cellFunctionParser.tryParse('="asd"').getValue()).toBe(
+                expect(grammar.tryParse('="asd"').getValue()).toBe(
                     expectedString.getValue(),
                 );
             });
@@ -73,7 +77,7 @@ describe("Grammar", () => {
                         new NumberType(INDEX_INFO, "12"),
                     ]);
 
-                    const parsingResult = cellFunctionParser.tryParse(
+                    const parsingResult = grammar.tryParse(
                         "=CONCAT(12, 12)",
                     ) as IFunction<string>;
 
@@ -88,7 +92,7 @@ describe("Grammar", () => {
                         new StringType(INDEX_INFO, "12"),
                     ]);
 
-                    const parsingResult = cellFunctionParser.tryParse(
+                    const parsingResult = grammar.tryParse(
                         '=CONCAT("12", "12")',
                     ) as IFunction<string>;
 
@@ -103,7 +107,7 @@ describe("Grammar", () => {
                         new StringType(INDEX_INFO, "12"),
                     ]);
 
-                    const parsingResult = cellFunctionParser.tryParse(
+                    const parsingResult = grammar.tryParse(
                         '=CONCAT(12, "12")',
                     ) as IFunction<string>;
 
@@ -123,7 +127,7 @@ describe("Grammar", () => {
                     };
 
                     expect<P.Result<IExpressionType<any>>>(
-                        cellFunctionParser.parse('=CONCAT(12, ""12")'),
+                        grammar.parse('=CONCAT(12, ""12")'),
                     ).toStrictEqual<P.Failure>(expect.objectContaining(failure));
                 });
 
@@ -133,7 +137,7 @@ describe("Grammar", () => {
                         new StringType(INDEX_INFO, '"12'),
                     ]);
 
-                    const parsingResult = cellFunctionParser.tryParse(
+                    const parsingResult = grammar.tryParse(
                         '=CONCAT(12, "\\"12")',
                     ) as IFunction<string>;
 
@@ -148,7 +152,7 @@ describe("Grammar", () => {
                         new StringType(INDEX_INFO, '""12""'),
                     ]);
 
-                    const parsingResult = cellFunctionParser.tryParse(
+                    const parsingResult = grammar.tryParse(
                         '=CONCAT(12, "\\"\\"12\\"\\"")',
                     ) as IFunction<string>;
 
@@ -163,7 +167,7 @@ describe("Grammar", () => {
                         new StringType(INDEX_INFO, '"12'),
                     ]);
 
-                    const parsingResult = cellFunctionParser.tryParse(
+                    const parsingResult = grammar.tryParse(
                         '=CONCAT(12, "\\"12")',
                     ) as IFunction<string>;
 
@@ -183,7 +187,7 @@ describe("Grammar", () => {
                     };
 
                     expect<P.Result<IExpressionType<any>>>(
-                        cellFunctionParser.parse('=INVALIDFN("a", "b")'),
+                        grammar.parse('=INVALIDFN("a", "b")'),
                     ).toStrictEqual<P.Failure>(expect.objectContaining(failure));
                 });
             });
@@ -195,7 +199,7 @@ describe("Grammar", () => {
                             new NumberType(INDEX_INFO, "12"),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse(
+                        const parsingResult = grammar.tryParse(
                             "=-12",
                         ) as IFunction<string>;
 
@@ -212,7 +216,7 @@ describe("Grammar", () => {
                             new NumberType(INDEX_INFO, "12"),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse(
+                        const parsingResult = grammar.tryParse(
                             "=11-12",
                         ) as IFunction<string>;
 
@@ -232,7 +236,7 @@ describe("Grammar", () => {
                             new NumberType(INDEX_INFO, "13"),
                         ]);
 
-                        const parsingResult = cellFunctionParser.tryParse(
+                        const parsingResult = grammar.tryParse(
                             "=11-12-13",
                         ) as IFunction<string>;
 
@@ -250,7 +254,7 @@ describe("Grammar", () => {
                                 new NumberType(INDEX_INFO, "12"),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=11+12",
                             ) as IFunction<string>;
 
@@ -270,7 +274,7 @@ describe("Grammar", () => {
                                 new NumberType(INDEX_INFO, "13"),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=11+12+13",
                             ) as IFunction<string>;
 
@@ -289,7 +293,7 @@ describe("Grammar", () => {
                                 new NumberType(INDEX_INFO, "12"),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=11*12",
                             ) as IFunction<string>;
 
@@ -309,7 +313,7 @@ describe("Grammar", () => {
                                 new NumberType(INDEX_INFO, "13"),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=11*12*13",
                             ) as IFunction<string>;
 
@@ -330,7 +334,7 @@ describe("Grammar", () => {
                                 new NumberType(INDEX_INFO, "12"),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=11/12",
                             ) as IFunction<string>;
 
@@ -350,7 +354,7 @@ describe("Grammar", () => {
                                 new NumberType(INDEX_INFO, "13"),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=11/12/13",
                             ) as IFunction<string>;
 
@@ -372,7 +376,7 @@ describe("Grammar", () => {
                                 new NumberType(INDEX_INFO, "3"),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=2^3",
                             ) as IFunction<string>;
 
@@ -391,7 +395,7 @@ describe("Grammar", () => {
                                 ]),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=2^3^4",
                             ) as IFunction<string>;
 
@@ -412,7 +416,7 @@ describe("Grammar", () => {
                                 new NumberType(INDEX_INFO, "2"),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=2!",
                             ) as IFunction<string>;
 
@@ -430,7 +434,7 @@ describe("Grammar", () => {
                                 ]),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=3!!",
                             ) as IFunction<string>;
 
@@ -448,7 +452,7 @@ describe("Grammar", () => {
                                 new NegateFunction(INDEX_INFO, [new NumberType(INDEX_INFO, "11")]),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=-11!",
                             ) as IFunction<string>;
 
@@ -467,7 +471,7 @@ describe("Grammar", () => {
                                 ]),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=11^12!",
                             ) as IFunction<string>;
 
@@ -489,7 +493,7 @@ describe("Grammar", () => {
                                 ]),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=11*2^3",
                             ) as IFunction<string>;
 
@@ -509,7 +513,7 @@ describe("Grammar", () => {
                                 ]),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=11/2^3",
                             ) as IFunction<string>;
 
@@ -529,7 +533,7 @@ describe("Grammar", () => {
                                 ]),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=11+12*13",
                             ) as IFunction<string>;
 
@@ -551,7 +555,7 @@ describe("Grammar", () => {
                                 ]),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=11-12*13",
                             ) as IFunction<string>;
 
@@ -573,7 +577,7 @@ describe("Grammar", () => {
                                 ]),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=11+12/13",
                             ) as IFunction<string>;
 
@@ -596,7 +600,7 @@ describe("Grammar", () => {
                                 ]),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=11-12/13",
                             ) as IFunction<string>;
 
@@ -619,7 +623,7 @@ describe("Grammar", () => {
                                 new NumberType(INDEX_INFO, "13"),
                             ]);
 
-                            const parsingResult1 = cellFunctionParser.tryParse(
+                            const parsingResult1 = grammar.tryParse(
                                 "=11*12/13",
                             ) as IFunction<string>;
 
@@ -639,7 +643,7 @@ describe("Grammar", () => {
                                 new NumberType(INDEX_INFO, "13"),
                             ]);
 
-                            const parsingResult2 = cellFunctionParser.tryParse(
+                            const parsingResult2 = grammar.tryParse(
                                 "=11/12*13",
                             ) as IFunction<string>;
 
@@ -662,7 +666,7 @@ describe("Grammar", () => {
                                 new NumberType(INDEX_INFO, "13"),
                             ]);
 
-                            const parsingResult1 = cellFunctionParser.tryParse(
+                            const parsingResult1 = grammar.tryParse(
                                 "=11+12-13",
                             ) as IFunction<string>;
 
@@ -682,7 +686,7 @@ describe("Grammar", () => {
                                 new NumberType(INDEX_INFO, "13"),
                             ]);
 
-                            const parsingResult2 = cellFunctionParser.tryParse(
+                            const parsingResult2 = grammar.tryParse(
                                 "=11-12+13",
                             ) as IFunction<string>;
 
@@ -703,7 +707,7 @@ describe("Grammar", () => {
                                 ]),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=-(11+12)",
                             ) as IFunction<string>;
 
@@ -723,7 +727,7 @@ describe("Grammar", () => {
                                 ]),
                             ]);
 
-                            const parsingResult = cellFunctionParser.tryParse(
+                            const parsingResult = grammar.tryParse(
                                 "=11-SUM(12,13)",
                             ) as IFunction<string>;
 
@@ -781,7 +785,7 @@ describe("Grammar", () => {
                                 ]),
                             ]);
                             expect(
-                                cellFunctionParser
+                                grammar
                                     .tryParse("=2^-4/6+11-SUM(3!,-13)+(2-2)*3!+(-2*-3)!")
                                     .getValue(),
                             ).toStrictEqual(expectedExpression.getValue());
@@ -794,32 +798,32 @@ describe("Grammar", () => {
 
     describe("AST Semantic Validation", () => {
         test("should return success on validation", () => {
-            const ast = cellFunctionParser.parse("=1+1")
+            const ast = grammar.parse("=1+1")
             
             expect(validate(ast)).toStrictEqual(makeSuccess());
         });
         
         test("should return success on validation with multiple levels", () => {
-            const ast = cellFunctionParser.parse("=1+1+(1-1)")
+            const ast = grammar.parse("=1+1+(1-1)")
             
             expect(validate(ast)).toStrictEqual(makeSuccess());
         });
 
         describe('Add function', () => {
             test('should return success when arguments are numbers', () => {
-                const ast = cellFunctionParser.parse("=1+1")
+                const ast = grammar.parse("=1+1")
             
                 expect(validate(ast)).toStrictEqual(makeSuccess());
             })
             
             test('should return success when arguments are numbers', () => {
-                const ast = cellFunctionParser.parse("=SUM(1,1)")
+                const ast = grammar.parse("=SUM(1,1)")
             
                 expect(validate(ast)).toStrictEqual(makeSuccess());
             })
             
             test('should return failure when arguments count is not 2', () => {
-                const ast = cellFunctionParser.parse("=SUM(1, 1, 1)")
+                const ast = grammar.parse("=SUM(1, 1, 1)")
             
                 expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
                     index: {
@@ -832,7 +836,7 @@ describe("Grammar", () => {
             })
             
             test('should return failure when arguments are not numbers', () => {
-                const ast = cellFunctionParser.parse('=SUM(1, "1")')
+                const ast = grammar.parse('=SUM(1, "1")')
             
                 expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
                     index: {
@@ -845,13 +849,13 @@ describe("Grammar", () => {
             })
             
             test('should return success when arguments are result of inner functions with correct type', () => {
-                const ast = cellFunctionParser.parse('=SUM(1, -1)')
+                const ast = grammar.parse('=SUM(1, -1)')
             
                 expect(validate(ast)).toStrictEqual(makeSuccess());
             })
             
             test('should return failure when arguments are result of inner functions with incorrect type', () => {
-                const ast = cellFunctionParser.parse('=SUM(1, CONCAT("a", "b"))')
+                const ast = grammar.parse('=SUM(1, CONCAT("a", "b"))')
             
                 expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
                     index: {
@@ -866,13 +870,13 @@ describe("Grammar", () => {
         
         describe('Negate function', () => {
             test('should return success when argument is number', () => {
-                const ast = cellFunctionParser.parse("=(-1)")
+                const ast = grammar.parse("=(-1)")
             
                 expect(validate(ast)).toStrictEqual(makeSuccess());
             })
             
             test('should return failure when arguments count is not 1', () => {
-                const ast = cellFunctionParser.parse("=NEGATE(1, 1)")
+                const ast = grammar.parse("=NEGATE(1, 1)")
             
                 expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
                     index: {
@@ -885,7 +889,7 @@ describe("Grammar", () => {
             })
             
             test('should return failure when arguments are not numbers', () => {
-                const ast = cellFunctionParser.parse('=NEGATE("1")')
+                const ast = grammar.parse('=NEGATE("1")')
             
                 expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
                     index: {
@@ -898,13 +902,13 @@ describe("Grammar", () => {
             })
             
             test('should return success when arguments are result of inner functions with correct type', () => {
-                const ast = cellFunctionParser.parse('=NEGATE(-1)')
+                const ast = grammar.parse('=NEGATE(-1)')
             
                 expect(validate(ast)).toStrictEqual(makeSuccess());
             })
             
             test('should return failure when arguments are result of inner functions with incorrect type', () => {
-                const ast = cellFunctionParser.parse('=NEGATE(CONCAT("a", "b"))')
+                const ast = grammar.parse('=NEGATE(CONCAT("a", "b"))')
             
                 expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
                     index: {

@@ -1,6 +1,6 @@
 import type { Index } from "parsimmon";
-import { Types } from "../definitions";
-import { FunctionType, IFunctionArg } from "./types";
+import { Types } from "../../definitions";
+import { FunctionType, IFunctionArg } from "../types";
 
 export class MultiplyFunction extends FunctionType<number> {
     readonly returnType = Types.NUMBER;
