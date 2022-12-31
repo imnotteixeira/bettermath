@@ -1,6 +1,7 @@
 import { Index } from "parsimmon";
 import { BaseType, IBaseType, IExpressionType, Types } from "../definitions";
-import { makeSemanticFailure, makeSuccess, ValidationError, ValidationResult } from "../validator";
+import { makeSemanticFailure, makeSuccess, ValidationError, ValidationResult } from "./validator";
+import { PipelineValidator, validationPipeline } from "./validator/pipeline";
 
 export type IFunctionArg<T> = IExpressionType<T>;
 
@@ -9,14 +10,10 @@ export interface IFunction<T> extends IBaseType<T> {
     fn: string;
     args: IFunctionArg<any>[];
     returnType: Types;
-
 }
 
-export type FunctionArgsValidator = (_: IFunctionArg<any>[], onSuccess: () => void, onFailure: (errors: ValidationError[]) => void) => void;
+export type FunctionArgsValidator = (validator: PipelineValidator, _: IFunctionArg<any>[], onSuccess: () => void, onFailure: (errors: ValidationError[]) => void) => void;
 
-/**
- * T: Return Type
- */
 export abstract class FunctionType<T> extends BaseType<T> implements IFunction<T> {
     readonly type = Types.FUNCTION;
     readonly fn: string;
@@ -36,7 +33,8 @@ export abstract class FunctionType<T> extends BaseType<T> implements IFunction<T
         const onSuccess = () => { returnVal = makeSuccess() }
         const onFailure = (errors: ValidationError[]) => { returnVal = makeSemanticFailure(errors) }
 
-        this.validateArgs(this.args, onSuccess, onFailure);
+        const validator = validationPipeline(this.fn, this.args, this.indexInfo);
+        this.validateArgs(validator, this.args, onSuccess, onFailure);
 
         if(returnVal === null) {
             throw new Error(`[${this.fn} Function Validator] Validation function must call either onSuccess or onFailure callback`)
@@ -46,5 +44,5 @@ export abstract class FunctionType<T> extends BaseType<T> implements IFunction<T
     }
 
     // Optional function that child-classes can override to define their own validation
-    protected validateArgs: FunctionArgsValidator = (_: IFunctionArg<any>[], onSuccess: () => void, onFailure: (errors: ValidationError[]) => void) => onSuccess();
+    protected validateArgs: FunctionArgsValidator = (validator: PipelineValidator, _: IFunctionArg<any>[], onSuccess: () => void, onFailure: (errors: ValidationError[]) => void) => onSuccess();
 }

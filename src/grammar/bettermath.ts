@@ -324,4 +324,4 @@ const buildGrammar = (functionRegistry: FunctionRegistry): P.Parser<IExpressionT
 export default buildGrammar;
 
 // TODO
-//  function args validation for other functions
+//  function args validation for other functions (+ UnitTests for these)

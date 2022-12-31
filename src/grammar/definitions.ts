@@ -1,7 +1,7 @@
 import type P from "parsimmon";
 import type { Index } from "parsimmon";
 import { IFunction } from "./functions/types";
-import { makeSuccess, ValidationResult } from "./validator";
+import { makeSuccess, ValidationResult } from "./functions/validator";
 
 export enum Types {
     STRING = "string",

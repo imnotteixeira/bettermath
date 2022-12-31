@@ -13,9 +13,9 @@ import {
     FactorialFunction,
 } from "../../src/grammar/functions/base";
 import { IFunction } from "../../src/grammar/functions/types";
-import { makeSemanticFailure, makeSuccess, validate } from "../../src/grammar/validator";
 import buildGrammar from "../../src/grammar/bettermath";
 import { FunctionRegistry } from "../../src/grammar/functions";
+import { makeSemanticFailure, makeSuccess, validate } from "../../src/grammar/functions/validator";
 
 describe("Grammar", () => {
     const INDEX_INFO: P.Index = {
@@ -844,7 +844,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 11,
                     },
-                    message: "Argument of type 'string' is not supported. Argument must be a number"
+                    message: "Argument of type 'string' is not valid. Argument must be a 'number'."
                 }]));
             })
             
@@ -863,7 +863,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 15,
                     },
-                    message: "CONCAT function returns a string, which is not supported on Add function. Argument must be a number"
+                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be a 'number'."
                 }]));
             })
         })
@@ -897,7 +897,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 11,
                     },
-                    message: "Argument of type 'string' is not supported. Argument must be a number"
+                    message: "Argument of type 'string' is not valid. Argument must be a 'number'."
                 }]));
             })
             
@@ -916,7 +916,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 15,
                     },
-                    message: "CONCAT function returns a string, which is not supported on Add function. Argument must be a number"
+                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be a 'number'."
                 }]));
             })
         })

@@ -1,7 +1,7 @@
 import type P from "parsimmon"
 import type { Index } from "parsimmon";
-import { IExpressionType, Types } from "./definitions"
-import { IFunction } from "./functions/types";
+import { IExpressionType, Types } from "../../definitions"
+import { IFunction, IFunctionArg } from "../types";
 
 export type ValidationResult = typeof Success | ISyntaxFailure | ISemanticFailure
 
@@ -48,11 +48,9 @@ export const validate = (ast: P.Result<IExpressionType<any>>): ValidationResult 
     }
     
     if(ast.value.type === Types.FUNCTION) {
-        console.log("validating", (ast as P.Success<IFunction<any>>).value.fn)
         const argValidationErrors: ISemanticFailure[] = (ast as P.Success<IFunction<any>>).value.args
             .map(arg => arg.validate())
             .filter(argValidationResult => !argValidationResult.success) as ISemanticFailure[]
-        console.log("args", argValidationErrors)
         
         if(argValidationErrors.length) {
             validationErrors.push(...argValidationErrors.flatMap(semanticError => semanticError.errors))
