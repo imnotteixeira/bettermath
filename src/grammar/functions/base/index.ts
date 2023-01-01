@@ -15,12 +15,16 @@ const BASE_FUNCTIONS: Record<string, FunctionBuilder<any>> = Object.freeze({
     Add: (indexInfo: Index, args: IFunctionArg<number>[]) => new AddFunction(indexInfo, args),
     SUB: (indexInfo: Index, args: IFunctionArg<number>[]) => new SubtractFunction(indexInfo, args),
     Subtract: (indexInfo: Index, args: IFunctionArg<number>[]) => new SubtractFunction(indexInfo, args),
+    MULTIPLY: (indexInfo: Index, args: IFunctionArg<number>[]) => new MultiplyFunction(indexInfo, args),
     Multiply: (indexInfo: Index, args: IFunctionArg<number>[]) => new MultiplyFunction(indexInfo, args),
+    DIVIDE: (indexInfo: Index, args: IFunctionArg<number>[]) => new DivideFunction(indexInfo, args),
     Divide: (indexInfo: Index, args: IFunctionArg<number>[]) => new DivideFunction(indexInfo, args),
+    EXPONENTIATE: (indexInfo: Index, args: IFunctionArg<number>[]) => new ExponentiateFunction(indexInfo, args),
     Exponentiate: (indexInfo: Index, args: IFunctionArg<number>[]) => new ExponentiateFunction(indexInfo, args),
+    FACTORIAL: (indexInfo: Index, args: IFunctionArg<number>[]) => new FactorialFunction(indexInfo, args),
     Factorial: (indexInfo: Index, args: IFunctionArg<number>[]) => new FactorialFunction(indexInfo, args),
-    Negate: (indexInfo: Index, args: IFunctionArg<number>[]) => new NegateFunction(indexInfo, args),
     NEGATE: (indexInfo: Index, args: IFunctionArg<number>[]) => new NegateFunction(indexInfo, args),
+    Negate: (indexInfo: Index, args: IFunctionArg<number>[]) => new NegateFunction(indexInfo, args),
     CONCAT: (indexInfo: Index, args: IFunctionArg<any>[]) => new ConcatFunction(indexInfo, args),
 });
 

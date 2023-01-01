@@ -868,6 +868,295 @@ describe("Grammar", () => {
             })
         })
         
+        describe('Subtract function', () => {
+            test('should return success when arguments are numbers', () => {
+                const ast = grammar.parse("=1-1")
+            
+                expect(validate(ast)).toStrictEqual(makeSuccess());
+            })
+            
+            test('should return success when arguments are numbers', () => {
+                const ast = grammar.parse("=SUB(1,1)")
+            
+                expect(validate(ast)).toStrictEqual(makeSuccess());
+            })
+            
+            test('should return failure when arguments count is not 2', () => {
+                const ast = grammar.parse("=SUB(1, 1, 1)")
+            
+                expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
+                    index: {
+                        column: 6,
+                        line: 1,
+                        offset: 5,
+                    },
+                    message: "Subtract function takes exactly 2 arguments. 3 received instead."
+                }]));
+            })
+            
+            test('should return failure when arguments are not numbers', () => {
+                const ast = grammar.parse('=SUB(1, "1")')
+            
+                expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
+                    index: {
+                        column: 12,
+                        line: 1,
+                        offset: 11,
+                    },
+                    message: "Argument of type 'string' is not valid. Argument must be a 'number'."
+                }]));
+            })
+            
+            test('should return success when arguments are result of inner functions with correct type', () => {
+                const ast = grammar.parse('=SUB(1, -1)')
+            
+                expect(validate(ast)).toStrictEqual(makeSuccess());
+            })
+            
+            test('should return failure when arguments are result of inner functions with incorrect type', () => {
+                const ast = grammar.parse('=SUB(1, CONCAT("a", "b"))')
+            
+                expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
+                    index: {
+                        column: 16,
+                        line: 1,
+                        offset: 15,
+                    },
+                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be a 'number'."
+                }]));
+            })
+        })
+        
+        describe('Multiply function', () => {
+            test('should return success when arguments are numbers', () => {
+                const ast = grammar.parse("=1*1")
+            
+                expect(validate(ast)).toStrictEqual(makeSuccess());
+            })
+            
+            test('should return success when arguments are numbers', () => {
+                const ast = grammar.parse("=MULTIPLY(1,1)")
+            
+                expect(validate(ast)).toStrictEqual(makeSuccess());
+            })
+            
+            test('should return failure when arguments count is not 2', () => {
+                const ast = grammar.parse("=MULTIPLY(1, 1, 1)")
+            
+                expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
+                    index: {
+                        column: 11,
+                        line: 1,
+                        offset: 10,
+                    },
+                    message: "Multiply function takes exactly 2 arguments. 3 received instead."
+                }]));
+            })
+            
+            test('should return failure when arguments are not numbers', () => {
+                const ast = grammar.parse('=MULTIPLY(1, "1")')
+            
+                expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
+                    index: {
+                        column: 17,
+                        line: 1,
+                        offset: 16,
+                    },
+                    message: "Argument of type 'string' is not valid. Argument must be a 'number'."
+                }]));
+            })
+            
+            test('should return success when arguments are result of inner functions with correct type', () => {
+                const ast = grammar.parse('=MULTIPLY(1, -1)')
+            
+                expect(validate(ast)).toStrictEqual(makeSuccess());
+            })
+            
+            test('should return failure when arguments are result of inner functions with incorrect type', () => {
+                const ast = grammar.parse('=MULTIPLY(1, CONCAT("a", "b"))')
+            
+                expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
+                    index: {
+                        column: 21,
+                        line: 1,
+                        offset: 20,
+                    },
+                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be a 'number'."
+                }]));
+            })
+        })
+        
+        describe('Divide function', () => {
+            test('should return success when arguments are numbers', () => {
+                const ast = grammar.parse("=1/1")
+            
+                expect(validate(ast)).toStrictEqual(makeSuccess());
+            })
+            
+            test('should return success when arguments are numbers', () => {
+                const ast = grammar.parse("=DIVIDE(1,1)")
+            
+                expect(validate(ast)).toStrictEqual(makeSuccess());
+            })
+            
+            test('should return failure when arguments count is not 2', () => {
+                const ast = grammar.parse("=DIVIDE(1, 1, 1)")
+            
+                expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
+                    index: {
+                        column: 9,
+                        line: 1,
+                        offset: 8,
+                    },
+                    message: "Divide function takes exactly 2 arguments. 3 received instead."
+                }]));
+            })
+            
+            test('should return failure when arguments are not numbers', () => {
+                const ast = grammar.parse('=DIVIDE(1, "1")')
+            
+                expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
+                    index: {
+                        column: 15,
+                        line: 1,
+                        offset: 14,
+                    },
+                    message: "Argument of type 'string' is not valid. Argument must be a 'number'."
+                }]));
+            })
+            
+            test('should return success when arguments are result of inner functions with correct type', () => {
+                const ast = grammar.parse('=DIVIDE(1, -1)')
+            
+                expect(validate(ast)).toStrictEqual(makeSuccess());
+            })
+            
+            test('should return failure when arguments are result of inner functions with incorrect type', () => {
+                const ast = grammar.parse('=DIVIDE(1, CONCAT("a", "b"))')
+            
+                expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
+                    index: {
+                        column: 19,
+                        line: 1,
+                        offset: 18,
+                    },
+                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be a 'number'."
+                }]));
+            })
+        })
+        
+        describe('Exponentiate function', () => {
+            test('should return success when arguments are numbers', () => {
+                const ast = grammar.parse("=1^1")
+            
+                expect(validate(ast)).toStrictEqual(makeSuccess());
+            })
+            
+            test('should return success when arguments are numbers', () => {
+                const ast = grammar.parse("=EXPONENTIATE(1,1)")
+            
+                expect(validate(ast)).toStrictEqual(makeSuccess());
+            })
+            
+            test('should return failure when arguments count is not 2', () => {
+                const ast = grammar.parse("=EXPONENTIATE(1, 1, 1)")
+            
+                expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
+                    index: {
+                        column: 15,
+                        line: 1,
+                        offset: 14,
+                    },
+                    message: "Exponentiate function takes exactly 2 arguments. 3 received instead."
+                }]));
+            })
+            
+            test('should return failure when arguments are not numbers', () => {
+                const ast = grammar.parse('=EXPONENTIATE(1, "1")')
+            
+                expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
+                    index: {
+                        column: 21,
+                        line: 1,
+                        offset: 20,
+                    },
+                    message: "Argument of type 'string' is not valid. Argument must be a 'number'."
+                }]));
+            })
+            
+            test('should return success when arguments are result of inner functions with correct type', () => {
+                const ast = grammar.parse('=EXPONENTIATE(1, -1)')
+            
+                expect(validate(ast)).toStrictEqual(makeSuccess());
+            })
+            
+            test('should return failure when arguments are result of inner functions with incorrect type', () => {
+                const ast = grammar.parse('=EXPONENTIATE(1, CONCAT("a", "b"))')
+            
+                expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
+                    index: {
+                        column: 25,
+                        line: 1,
+                        offset: 24,
+                    },
+                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be a 'number'."
+                }]));
+            })
+        })
+        
+        describe('Factorial function', () => {
+            test('should return success when argument is number', () => {
+                const ast = grammar.parse("=(1!)")
+            
+                expect(validate(ast)).toStrictEqual(makeSuccess());
+            })
+            
+            test('should return failure when arguments count is not 1', () => {
+                const ast = grammar.parse("=FACTORIAL(1, 1)")
+            
+                expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
+                    index: {
+                        column: 12,
+                        line: 1,
+                        offset: 11,
+                    },
+                    message: "Factorial function takes exactly 1 argument. 2 received instead."
+                }]));
+            })
+            
+            test('should return failure when arguments are not numbers', () => {
+                const ast = grammar.parse('=FACTORIAL("1")')
+            
+                expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
+                    index: {
+                        column: 15,
+                        line: 1,
+                        offset: 14,
+                    },
+                    message: "Argument of type 'string' is not valid. Argument must be a 'number'."
+                }]));
+            })
+            
+            test('should return success when arguments are result of inner functions with correct type', () => {
+                const ast = grammar.parse('=FACTORIAL(-1)')
+            
+                expect(validate(ast)).toStrictEqual(makeSuccess());
+            })
+            
+            test('should return failure when arguments are result of inner functions with incorrect type', () => {
+                const ast = grammar.parse('=FACTORIAL(CONCAT("a", "b"))')
+            
+                expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
+                    index: {
+                        column: 19,
+                        line: 1,
+                        offset: 18,
+                    },
+                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be a 'number'."
+                }]));
+            })
+        })
+
         describe('Negate function', () => {
             test('should return success when argument is number', () => {
                 const ast = grammar.parse("=(-1)")
