@@ -1,12 +1,11 @@
 {
-    "name": "js-grammar-poc",
+    "name": "bettermath",
     "version": "1.0.0",
     "description": "",
     "main": "dist/index",
     "typings": "dist/index",
     "scripts": {
         "start": "ts-node src/grammar/bettermath.ts",
-        "start-js": "node src/grammar/js/bettermath.js",
         "build": "tsc",
         "test": "jest",
         "prepublish": "npm run build"
