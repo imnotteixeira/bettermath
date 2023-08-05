@@ -103,3 +103,7 @@ validate(ast)
 All the current grammar functionality is unit tested, covering the supported parsing cases, as well as the semantic validation of functions. As the grammar grows, the new scenarios should be added to the test suite so that regressions are avoided.
 
 To run the tests, simply execute `npm test`
+
+## Versioning
+
+This packages follows the [Angular Commit Guidelines](https://github.com/angular/angular/blob/22b96b9/CONTRIBUTING.md#-commit-message-guidelines). This is used for auto-publishing to npm and release creation.
