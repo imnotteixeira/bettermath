@@ -9,6 +9,7 @@ import {
     StringType,
     NumberType,
     IValueType,
+    BettermathGrammarParser,
 } from "./definitions";
 import { FunctionType, IFunctionArg } from "./functions/types";
 import { FunctionRegistry } from "./functions";
@@ -18,7 +19,7 @@ const loadBaseFunctions = (functionRegistry: FunctionRegistry) => {
     functionRegistry.registerBulk(BASE_FUNCTIONS)
 }
 
-const buildGrammar = (functionRegistry: FunctionRegistry): P.Parser<IExpressionType<any>> => {
+const buildGrammar = (functionRegistry: FunctionRegistry): BettermathGrammarParser => {
 
     loadBaseFunctions(functionRegistry)
 

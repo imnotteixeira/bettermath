@@ -70,7 +70,7 @@ grammar.parse("= 11 + 12 + 13")
 
 ## Validation
 
-Validation is done on 2 stages. First, syntatic validation is done by the parser (i.e., without a valid syntax, no AST will be produced, and an error will be output instead). If the expression is syntactically correct, semantic validation can be triggered by using the provided validator, which will validate each node of the AST automatically. Each node is valid if it is a simple value (string, number) or, in the case of functions, its arguments follow the validation rules for the given function (e.g. the Negate function must have 1 argument, and it must be a number)
+Validation is done on 2 stages. First, syntactic validation is done by the parser (i.e., without a valid syntax, no AST will be produced, and an error will be output instead). If the expression is syntactically correct, semantic validation can be triggered by using the provided validator, which will validate each node of the AST automatically. Each node is valid if it is a simple value (string, number) or, in the case of functions, its arguments follow the validation rules for the given function (e.g. the Negate function must have 1 argument, and it must be a number)
 
 ```typescript
 

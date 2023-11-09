@@ -80,3 +80,5 @@ export interface MathOperatorDefinition {
     type: MathOperatorType;
     ops: P.Parser<string>;
 }
+
+export type BettermathGrammarParser = P.Parser<IExpressionType<any>>;
