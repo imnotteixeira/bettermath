@@ -2,7 +2,8 @@ import type P from "parsimmon"
 import { ValidationError } from ".";
 import { IFunctionArg } from "../types";
 import argLengthValidator from "./argLengthValidator";
-import argTypeValidator, { ArgTypeDefinition } from "./argTypeValidator";
+import argTypeValidator, { ArgType, ArgTypeDefinition, either, is } from "./argTypeValidator";
+import { Types } from "../../definitions";
 
 type PipelineValidatorResult = undefined | ValidationError[]
 
@@ -35,5 +36,12 @@ export type FunctionValidatorBuilder<T extends any[]> = (...args: T) => ArgValid
 
 export const CommonValidators = {
     ARG_LENGTH: (length: number) => argLengthValidator(length),
-    ARG_TYPES: (...argTypes: ArgTypeDefinition[]) => argTypeValidator(...argTypes)
+    ARG_TYPES: (...argTypes: ArgTypeDefinition[]) => argTypeValidator(
+        // Accept Types.REF by default, even if not explicitly allowed
+        ...argTypes.map(argType => 
+            Array.isArray(argType)
+            ? [either(argType[0], is(Types.REF))] as [ArgType]
+            : either(argType, is(Types.REF))
+        )
+    )
 }

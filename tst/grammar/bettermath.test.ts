@@ -844,7 +844,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 11,
                     },
-                    message: "Argument of type 'string' is not valid. Argument must be a 'number'."
+                    message: "Argument of type 'string' is not valid. Argument must be 'Either(number, reference)'."
                 }]));
             })
             
@@ -863,7 +863,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 15,
                     },
-                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be a 'number'."
+                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be 'Either(number, reference)'."
                 }]));
             })
         })
@@ -903,7 +903,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 11,
                     },
-                    message: "Argument of type 'string' is not valid. Argument must be a 'number'."
+                    message: "Argument of type 'string' is not valid. Argument must be 'Either(number, reference)'."
                 }]));
             })
             
@@ -922,7 +922,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 15,
                     },
-                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be a 'number'."
+                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be 'Either(number, reference)'."
                 }]));
             })
         })
@@ -962,7 +962,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 16,
                     },
-                    message: "Argument of type 'string' is not valid. Argument must be a 'number'."
+                    message: "Argument of type 'string' is not valid. Argument must be 'Either(number, reference)'."
                 }]));
             })
             
@@ -981,7 +981,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 20,
                     },
-                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be a 'number'."
+                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be 'Either(number, reference)'."
                 }]));
             })
         })
@@ -1021,7 +1021,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 14,
                     },
-                    message: "Argument of type 'string' is not valid. Argument must be a 'number'."
+                    message: "Argument of type 'string' is not valid. Argument must be 'Either(number, reference)'."
                 }]));
             })
             
@@ -1040,7 +1040,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 18,
                     },
-                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be a 'number'."
+                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be 'Either(number, reference)'."
                 }]));
             })
         })
@@ -1080,7 +1080,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 20,
                     },
-                    message: "Argument of type 'string' is not valid. Argument must be a 'number'."
+                    message: "Argument of type 'string' is not valid. Argument must be 'Either(number, reference)'."
                 }]));
             })
             
@@ -1099,7 +1099,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 24,
                     },
-                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be a 'number'."
+                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be 'Either(number, reference)'."
                 }]));
             })
         })
@@ -1133,7 +1133,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 14,
                     },
-                    message: "Argument of type 'string' is not valid. Argument must be a 'number'."
+                    message: "Argument of type 'string' is not valid. Argument must be 'Either(number, reference)'."
                 }]));
             })
             
@@ -1152,7 +1152,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 18,
                     },
-                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be a 'number'."
+                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be 'Either(number, reference)'."
                 }]));
             })
         })
@@ -1186,7 +1186,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 11,
                     },
-                    message: "Argument of type 'string' is not valid. Argument must be a 'number'."
+                    message: "Argument of type 'string' is not valid. Argument must be 'Either(number, reference)'."
                 }]));
             })
             
@@ -1205,7 +1205,7 @@ describe("Grammar", () => {
                         line: 1,
                         offset: 15,
                     },
-                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be a 'number'."
+                    message: "Argument of type 'string' (returned from CONCAT) is not valid. Argument must be 'Either(number, reference)'."
                 }]));
             })
         })

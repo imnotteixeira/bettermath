@@ -3,6 +3,7 @@ import { Types } from "../../definitions";
 import { FunctionArgsValidator, FunctionType, IFunctionArg } from "../types";
 import { ValidationError } from "../validator";
 import { CommonValidators, PipelineValidator } from "../validator/pipeline";
+import { is } from "../validator/argTypeValidator";
 
 export class MultiplyFunction extends FunctionType<number> {
     readonly returnType = Types.NUMBER;
@@ -16,7 +17,7 @@ export class MultiplyFunction extends FunctionType<number> {
         
         const validationResult = validator([
             CommonValidators.ARG_LENGTH(2),
-            CommonValidators.ARG_TYPES(Types.NUMBER, Types.NUMBER)
+            CommonValidators.ARG_TYPES(is(Types.NUMBER), is(Types.NUMBER))
         ]).validate()
 
         if(validationResult) return onFailure(validationResult)

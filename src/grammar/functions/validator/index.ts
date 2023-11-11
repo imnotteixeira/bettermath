@@ -1,7 +1,10 @@
 import type P from "parsimmon"
 import type { Index } from "parsimmon";
 import { IExpressionType, Types } from "../../definitions"
-import { IFunction, IFunctionArg } from "../types";
+import { IFunction } from "../types";
+
+export type { PipelineValidator, ArgValidator } from "./pipeline" 
+export { CommonValidators } from "./pipeline" 
 
 export type ValidationResult = typeof Success | ISyntaxFailure | ISemanticFailure
 

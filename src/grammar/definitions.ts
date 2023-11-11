@@ -3,10 +3,13 @@ import type { Index } from "parsimmon";
 import { IFunction } from "./functions/types";
 import { makeSuccess, ValidationResult } from "./functions/validator";
 
+export type { Index } from "parsimmon";
+
 export enum Types {
     STRING = "string",
     NUMBER = "number",
-    FUNCTION = "function"
+    FUNCTION = "function",
+    REF = "reference", // Special type to refer to an external value. Can resolve to any type
 }
 
 type AllowedType = Types;
