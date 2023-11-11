@@ -5,6 +5,7 @@ import { IFunction } from "../types";
 
 export type { PipelineValidator, ArgValidator } from "./pipeline" 
 export { CommonValidators } from "./pipeline" 
+export { ArgType, ArgTypeDefinition, either, is } from "./argTypeValidator";
 
 export type ValidationResult = typeof Success | ISyntaxFailure | ISemanticFailure
 
