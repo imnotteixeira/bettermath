@@ -20,6 +20,8 @@ export interface IBaseType<T> {
     getValue: () => T;
 
     validate: () => ValidationResult;
+
+    find: (matcher: (elem: IBaseType<any>) => boolean) => IBaseType<any>[];
 }
 
 export abstract class BaseType<T> implements IBaseType<T> {
@@ -31,6 +33,25 @@ export abstract class BaseType<T> implements IBaseType<T> {
 
     constructor(indexInfo: Index) {
         this.indexInfo = indexInfo;
+    }
+
+    find = (matcher: (elem: IBaseType<any>) => boolean) => {
+        const results: IBaseType<any>[] = [];
+        if (matcher(this)) results.push(this)
+
+        const nodesToCheck: IBaseType<any>[] = [this];
+
+        while(nodesToCheck.length > 0) {
+            const node = nodesToCheck.pop()!
+
+            if (matcher(node)) results.push(node)
+
+            if (node.type === Types.FUNCTION) {
+                nodesToCheck.push(...(node as IFunction<any>).args)
+            }
+        }
+
+        return results;
     }
 }
 
