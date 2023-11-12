@@ -1,6 +1,7 @@
 import type { Index } from "parsimmon";
 import { FunctionType, IFunctionArg } from "./types";
 
+export * from "./types"
 export type FunctionBuilder<T> = (indexInfo: Index, args: IFunctionArg<T>[]) => FunctionType<T>
 
 export class FunctionRegistry {
