@@ -14,10 +14,41 @@ export enum Types {
 
 type AllowedType = Types;
 
+export class ValueResolvingResult<T> {
+    readonly isError: boolean;
+    readonly value?: T;
+    readonly error?: Error;
+
+    private constructor(isError: boolean, result?: {value? : T, error?: Error}) {
+        this.isError = isError;
+        this.value = result?.value;
+        this.error = result?.error;
+    }
+
+    static success = <T>(value: T) => new ValueResolvingResult(false, {value});
+    
+    static error = <T>(error: Error) => new ValueResolvingResult<T>(true, {error});
+
+    get = () => {
+        if (this.isError) {
+            throw new Error(
+                "The ValueResolvingResult is an error. Cannot get value. Inner error is: "
+                + this.error
+            );
+        }
+
+        return this.value as T;
+    }
+
+    getOrElse = (elseValue: T) => this.isError ? elseValue : this.value;
+
+    getError = () => this.error;
+}
+
 export interface IBaseType<T> {
     type: AllowedType;
     indexInfo: Index;
-    getValue: () => T;
+    getValue: (dependencyValueMap: Map<string, IBaseType<any> | undefined>) => ValueResolvingResult<T>;
 
     validate: () => ValidationResult;
 
@@ -28,7 +59,7 @@ export abstract class BaseType<T> implements IBaseType<T> {
     abstract type: AllowedType;
     readonly indexInfo: Index;
 
-    abstract getValue: () => T;
+    abstract getValue: (dependencyValueMap: Map<string, IBaseType<any> | undefined>) => ValueResolvingResult<T>;
     abstract validate: () => ValidationResult;
 
     constructor(indexInfo: Index) {
@@ -69,7 +100,7 @@ export class StringType extends BaseType<string> implements IStringType {
         this.value = str;
     }
 
-    getValue = () => this.value;
+    getValue = () => ValueResolvingResult.success(this.value);
     validate = () => makeSuccess();
 }
 
@@ -87,7 +118,35 @@ export class NumberType extends BaseType<number> implements INumberType {
         this.value = Number(num);
     }
 
-    getValue = () => this.value;
+    getValue = () => ValueResolvingResult.success(this.value);
+    validate = () => makeSuccess();
+}
+
+export interface IRefType extends IBaseType<any|undefined> {
+    type: Types.REF;
+    value: any| undefined;
+}
+
+export class RefType extends BaseType<any | undefined> implements IRefType {
+    readonly type = Types.REF;
+    readonly value: string;
+
+    constructor(indexInfo: Index, refId: string) {
+        super(indexInfo);
+        this.value = refId;
+    }
+
+    getValue = (dependencyValueMap: Map<string, IBaseType<any> | undefined>) => {
+        const referencedElem = dependencyValueMap.get(this.value);
+        if (!referencedElem) {
+            // Returning undefined value as success, since some functions may take advanatage of this, even though the value does not exist.
+            // Specific ValueResolvingResult.error will be returned if some function is processing an undefined Ref when it can't
+            return ValueResolvingResult.success(undefined)
+        } else {
+            return referencedElem.getValue(dependencyValueMap)
+        }
+    }
+
     validate = () => makeSuccess();
 }
 

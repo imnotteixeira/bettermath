@@ -1,9 +1,10 @@
 import type { Index } from "parsimmon";
-import { Types } from "../../definitions";
+import { IBaseType, Types, ValueResolvingResult } from "../../definitions";
 import { FunctionArgsValidator, FunctionType, IFunctionArg } from "../types";
 import { ValidationError } from "../validator";
 import { CommonValidators, PipelineValidator } from "../validator/pipeline";
 import { is } from "../validator/argTypeValidator";
+import { resolveValuesOnlyNumbers } from "../util";
 
 export class SubtractFunction extends FunctionType<number> {
     readonly returnType = Types.NUMBER;
@@ -12,7 +13,14 @@ export class SubtractFunction extends FunctionType<number> {
         super(indexInfo, "Subtract", args);
     }
 
-    getValue = () => this.args[0].getValue() - this.args[1].getValue();
+    getValue = (dependencyValueMap: Map<string, IBaseType<any> | undefined>) => {
+        try {
+            const resolvedValues = resolveValuesOnlyNumbers(this.args.map(arg => arg.getValue(dependencyValueMap)))
+            return ValueResolvingResult.success(resolvedValues[0] - resolvedValues[1]);
+        } catch (e) {
+            return ValueResolvingResult.error<number>(e as Error)
+        }
+    }
 
     protected validateArgs: FunctionArgsValidator = (validator: PipelineValidator, args: IFunctionArg<any>[], onSuccess: () => void, onFailure: (_: ValidationError[]) => void) => {
         

@@ -1,7 +1,7 @@
 import { inspect } from "util";
 import type P from "parsimmon";
 
-import { IExpressionType, NumberType, StringType } from "../../src/grammar/definitions";
+import { IExpressionType, NumberType, RefType, StringType, ValueResolvingResult } from "../../src/grammar/definitions";
 import {
     ConcatFunction,
     NegateFunction,
@@ -32,42 +32,63 @@ describe("Grammar", () => {
             test("should parse number", () => {
                 const expectedNumber = new NumberType(INDEX_INFO, "12");
 
-                expect(grammar.tryParse("12").getValue()).toBe(
-                    expectedNumber.getValue(),
+                expect(grammar.tryParse("12").getValue(new Map()).get()).toBe(
+                    expectedNumber.getValue().get(),
                 );
             });
 
             test("should parse negative number", () => {
                 const expectedNumber = new NumberType(INDEX_INFO, "-12");
-                expect(grammar.tryParse("-12").getValue()).toBe(
-                    expectedNumber.getValue(),
+                expect(grammar.tryParse("-12").getValue(new Map()).get()).toBe(
+                    expectedNumber.getValue().get(),
                 );
             });
 
             test("should parse number after EQUALS", () => {
                 const expectedNumber = new NumberType(INDEX_INFO, "12");
 
-                expect(grammar.tryParse("=12").getValue()).toBe(
-                    expectedNumber.getValue(),
+                expect(grammar.tryParse("=12").getValue(new Map()).get()).toBe(
+                    expectedNumber.getValue().get(),
                 );
             });
 
             test("should parse string", () => {
                 const expectedString = new StringType(INDEX_INFO, "1+1");
 
-                expect(grammar.tryParse("1+1").getValue()).toBe(
-                    expectedString.getValue(),
+                expect(grammar.tryParse("1+1").getValue(new Map()).get()).toBe(
+                    expectedString.getValue().get(),
                 );
             });
 
             test("should parse string after EQUALS", () => {
                 const expectedString = new StringType(INDEX_INFO, "asd");
 
-                expect(grammar.tryParse('="asd"').getValue()).toBe(
-                    expectedString.getValue(),
+                expect(grammar.tryParse('="asd"').getValue(new Map()).get()).toBe(
+                    expectedString.getValue().get(),
+                );
+            });
+            
+            test("should parse ref after EQUALS", () => {
+                const refId = "R1";
+                const refElem = new NumberType(INDEX_INFO, "11");
+                const dependencyValueMap = new Map([
+                    [refId, refElem]
+                ]);
+
+                expect(grammar.tryParse(`=${refId}`).getValue(dependencyValueMap).get()).toBe(
+                    refElem.getValue().get()
+                );
+            });
+
+            test("should parse string after EQUALS", () => {
+                const expectedString = new StringType(INDEX_INFO, "asd");
+
+                expect(grammar.tryParse('="asd"').getValue(new Map()).get()).toBe(
+                    expectedString.getValue().get(),
                 );
             });
         });
+
 
         describe("Expression values", () => {
             describe("Custom Functions", () => {
@@ -81,9 +102,9 @@ describe("Grammar", () => {
                         "=CONCAT(12, 12)",
                     ) as IFunction<string>;
 
-                    expect(parsingResult.args.map(arg => arg.getValue())).toEqual([12, 12]);
+                    expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([12, 12]);
 
-                    expect(parsingResult.getValue()).toBe(expectedExpression.getValue());
+                    expect(parsingResult.getValue(new Map()).get()).toBe(expectedExpression.getValue(new Map()).get());
                 });
 
                 test("should parse function with string arguments", () => {
@@ -96,9 +117,9 @@ describe("Grammar", () => {
                         '=CONCAT("12", "12")',
                     ) as IFunction<string>;
 
-                    expect(parsingResult.args.map(arg => arg.getValue())).toEqual(["12", "12"]);
+                    expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual(["12", "12"]);
 
-                    expect(parsingResult.getValue()).toStrictEqual(expectedExpression.getValue());
+                    expect(parsingResult.getValue(new Map()).get()).toStrictEqual(expectedExpression.getValue(new Map()).get());
                 });
 
                 test("should parse function with number and string arguments", () => {
@@ -111,9 +132,9 @@ describe("Grammar", () => {
                         '=CONCAT(12, "12")',
                     ) as IFunction<string>;
 
-                    expect(parsingResult.args.map(arg => arg.getValue())).toEqual([12, "12"]);
+                    expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([12, "12"]);
 
-                    expect(parsingResult.getValue()).toStrictEqual(expectedExpression.getValue());
+                    expect(parsingResult.getValue(new Map()).get()).toStrictEqual(expectedExpression.getValue(new Map()).get());
                 });
 
                 test("should error when string argument has too many quotes", () => {
@@ -141,9 +162,9 @@ describe("Grammar", () => {
                         '=CONCAT(12, "\\"12")',
                     ) as IFunction<string>;
 
-                    expect(parsingResult.args.map(arg => arg.getValue())).toEqual([12, '"12']);
+                    expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([12, '"12']);
 
-                    expect(parsingResult.getValue()).toStrictEqual(expectedExpression.getValue());
+                    expect(parsingResult.getValue(new Map()).get()).toStrictEqual(expectedExpression.getValue(new Map()).get());
                 });
 
                 test("should parse string with multiple quote levels", () => {
@@ -156,9 +177,9 @@ describe("Grammar", () => {
                         '=CONCAT(12, "\\"\\"12\\"\\"")',
                     ) as IFunction<string>;
 
-                    expect(parsingResult.args.map(arg => arg.getValue())).toEqual([12, '""12""']);
+                    expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([12, '""12""']);
 
-                    expect(parsingResult.getValue()).toStrictEqual(expectedExpression.getValue());
+                    expect(parsingResult.getValue(new Map()).get()).toStrictEqual(expectedExpression.getValue(new Map()).get());
                 });
 
                 test("should parse string with escapes of escapes", () => {
@@ -171,9 +192,9 @@ describe("Grammar", () => {
                         '=CONCAT(12, "\\"12")',
                     ) as IFunction<string>;
 
-                    expect(parsingResult.args.map(arg => arg.getValue())).toEqual([12, '"12']);
+                    expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([12, '"12']);
 
-                    expect(parsingResult.getValue()).toStrictEqual(expectedExpression.getValue());
+                    expect(parsingResult.getValue(new Map()).get()).toStrictEqual(expectedExpression.getValue(new Map()).get());
                 });
 
                 test("should fail parsing of invalid function", () => {
@@ -203,10 +224,10 @@ describe("Grammar", () => {
                             "=-12",
                         ) as IFunction<string>;
 
-                        expect(parsingResult.args.map(arg => arg.getValue())).toEqual([12]);
+                        expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([12]);
 
-                        expect(parsingResult.getValue()).toStrictEqual(
-                            expectedExpression.getValue(),
+                        expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                            expectedExpression.getValue(new Map()).get(),
                         );
                     });
 
@@ -220,10 +241,10 @@ describe("Grammar", () => {
                             "=11-12",
                         ) as IFunction<string>;
 
-                        expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 12]);
+                        expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([11, 12]);
 
-                        expect(parsingResult.getValue()).toStrictEqual(
-                            expectedExpression.getValue(),
+                        expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                            expectedExpression.getValue(new Map()).get(),
                         );
                     });
 
@@ -240,10 +261,10 @@ describe("Grammar", () => {
                             "=11-12-13",
                         ) as IFunction<string>;
 
-                        expect(parsingResult.args.map(arg => arg.getValue())).toEqual([-1, 13]);
+                        expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([-1, 13]);
 
-                        expect(parsingResult.getValue()).toStrictEqual(
-                            expectedExpression.getValue(),
+                        expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                            expectedExpression.getValue(new Map()).get(),
                         );
                     });
 
@@ -258,10 +279,10 @@ describe("Grammar", () => {
                                 "=11+12",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 12]);
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([11, 12]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
 
@@ -278,10 +299,10 @@ describe("Grammar", () => {
                                 "=11+12+13",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([23, 13]);
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([23, 13]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
                     });
@@ -297,10 +318,10 @@ describe("Grammar", () => {
                                 "=11*12",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 12]);
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([11, 12]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
 
@@ -317,12 +338,12 @@ describe("Grammar", () => {
                                 "=11*12*13",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([
                                 132, 13,
                             ]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
                     });
@@ -338,10 +359,10 @@ describe("Grammar", () => {
                                 "=11/12",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 12]);
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([11, 12]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
 
@@ -358,13 +379,13 @@ describe("Grammar", () => {
                                 "=11/12/13",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([
                                 11 / 12,
                                 13,
                             ]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
                     });
@@ -380,10 +401,10 @@ describe("Grammar", () => {
                                 "=2^3",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([2, 3]);
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([2, 3]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
                         test("should parse sequential Power", () => {
@@ -399,13 +420,13 @@ describe("Grammar", () => {
                                 "=2^3^4",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([
                                 2,
                                 Math.pow(3, 4),
                             ]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
                     });
@@ -420,10 +441,10 @@ describe("Grammar", () => {
                                 "=2!",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([2]);
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([2]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
 
@@ -438,10 +459,10 @@ describe("Grammar", () => {
                                 "=3!!",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([6]);
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([6]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
                     });
@@ -456,10 +477,10 @@ describe("Grammar", () => {
                                 "=-11!",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([-11]);
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([-11]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
 
@@ -475,12 +496,12 @@ describe("Grammar", () => {
                                 "=11^12!",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([
                                 11, 479001600,
                             ]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
 
@@ -497,10 +518,10 @@ describe("Grammar", () => {
                                 "=11*2^3",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 8]);
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([11, 8]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
 
@@ -517,10 +538,10 @@ describe("Grammar", () => {
                                 "=11/2^3",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 8]);
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([11, 8]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
 
@@ -537,12 +558,12 @@ describe("Grammar", () => {
                                 "=11+12*13",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([
                                 11, 156,
                             ]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
 
@@ -559,12 +580,12 @@ describe("Grammar", () => {
                                 "=11-12*13",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([
                                 11, 156,
                             ]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
 
@@ -581,13 +602,13 @@ describe("Grammar", () => {
                                 "=11+12/13",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([
                                 11,
                                 12 / 13,
                             ]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
 
@@ -604,13 +625,13 @@ describe("Grammar", () => {
                                 "=11-12/13",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([
                                 11,
                                 12 / 13,
                             ]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
 
@@ -627,12 +648,12 @@ describe("Grammar", () => {
                                 "=11*12/13",
                             ) as IFunction<string>;
 
-                            expect(parsingResult1.args.map(arg => arg.getValue())).toEqual([
+                            expect(parsingResult1.args.map(arg => arg.getValue(new Map()).get())).toEqual([
                                 132, 13,
                             ]);
 
-                            expect(parsingResult1.getValue()).toStrictEqual(
-                                expectedExpression1.getValue(),
+                            expect(parsingResult1.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression1.getValue(new Map()).get(),
                             );
 
                             const expectedExpression2 = new MultiplyFunction(INDEX_INFO, [
@@ -647,13 +668,13 @@ describe("Grammar", () => {
                                 "=11/12*13",
                             ) as IFunction<string>;
 
-                            expect(parsingResult2.args.map(arg => arg.getValue())).toEqual([
+                            expect(parsingResult2.args.map(arg => arg.getValue(new Map()).get())).toEqual([
                                 11 / 12,
                                 13,
                             ]);
 
-                            expect(parsingResult2.getValue()).toStrictEqual(
-                                expectedExpression2.getValue(),
+                            expect(parsingResult2.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression2.getValue(new Map()).get(),
                             );
                         });
 
@@ -670,12 +691,12 @@ describe("Grammar", () => {
                                 "=11+12-13",
                             ) as IFunction<string>;
 
-                            expect(parsingResult1.args.map(arg => arg.getValue())).toEqual([
+                            expect(parsingResult1.args.map(arg => arg.getValue(new Map()).get())).toEqual([
                                 23, 13,
                             ]);
 
-                            expect(parsingResult1.getValue()).toStrictEqual(
-                                expectedExpression1.getValue(),
+                            expect(parsingResult1.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression1.getValue(new Map()).get(),
                             );
 
                             const expectedExpression2 = new AddFunction(INDEX_INFO, [
@@ -690,12 +711,12 @@ describe("Grammar", () => {
                                 "=11-12+13",
                             ) as IFunction<string>;
 
-                            expect(parsingResult2.args.map(arg => arg.getValue())).toEqual([
+                            expect(parsingResult2.args.map(arg => arg.getValue(new Map()).get())).toEqual([
                                 -1, 13,
                             ]);
 
-                            expect(parsingResult2.getValue()).toStrictEqual(
-                                expectedExpression2.getValue(),
+                            expect(parsingResult2.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression2.getValue(new Map()).get(),
                             );
                         });
 
@@ -711,10 +732,10 @@ describe("Grammar", () => {
                                 "=-(11+12)",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([23]);
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([23]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
 
@@ -731,10 +752,10 @@ describe("Grammar", () => {
                                 "=11-SUM(12,13)",
                             ) as IFunction<string>;
 
-                            expect(parsingResult.args.map(arg => arg.getValue())).toEqual([11, 25]);
+                            expect(parsingResult.args.map(arg => arg.getValue(new Map()).get())).toEqual([11, 25]);
 
-                            expect(parsingResult.getValue()).toStrictEqual(
-                                expectedExpression.getValue(),
+                            expect(parsingResult.getValue(new Map()).get()).toStrictEqual(
+                                expectedExpression.getValue(new Map()).get(),
                             );
                         });
 
@@ -787,10 +808,39 @@ describe("Grammar", () => {
                             expect(
                                 grammar
                                     .tryParse("=2^-4/6+11-SUM(3!,-13)+(2-2)*3!+(-2*-3)!")
-                                    .getValue(),
-                            ).toStrictEqual(expectedExpression.getValue());
+                                    .getValue(new Map()).get(),
+                            ).toStrictEqual(expectedExpression.getValue(new Map()).get());
                         });
                     });
+
+                    describe("Expressions with Refs", () => {
+                        test("should resolve ref value within a math expression", () => {
+                            const refs = {
+                                R1: new NumberType(INDEX_INFO, "1"),
+                                R2: new NumberType(INDEX_INFO, "2"),
+                            };
+                            const dependencyValueMap = new Map(Object.entries(refs));
+            
+                            const expectedExpression = new AddFunction(INDEX_INFO, Object.values(refs));
+
+                            expect(grammar.tryParse("=R1+R2").getValue(dependencyValueMap).get()).toBe(
+                                expectedExpression.getValue(dependencyValueMap).get()
+                            );
+                        });
+
+                        test("should resolve ref value within an unary math expression", () => {
+                            const refs = {
+                                R1: new NumberType(INDEX_INFO, "1"),
+                            };
+                            const dependencyValueMap = new Map(Object.entries(refs));
+            
+                            const expectedExpression = new NegateFunction(INDEX_INFO, Object.values(refs));
+
+                            expect(grammar.tryParse("=-R1").getValue(dependencyValueMap).get()).toBe(
+                                expectedExpression.getValue(dependencyValueMap).get()
+                            );
+                        });
+                    })
                 });
             });
         });
@@ -805,6 +855,12 @@ describe("Grammar", () => {
         
         test("should return success on validation with multiple levels", () => {
             const ast = grammar.parse("=1+1+(1-1)")
+            
+            expect(validate(ast)).toStrictEqual(makeSuccess());
+        });
+        
+        test("should return success on validation with refs", () => {
+            const ast = grammar.parse("=1+XZ765+(1-A54)")
             
             expect(validate(ast)).toStrictEqual(makeSuccess());
         });
@@ -1177,7 +1233,7 @@ describe("Grammar", () => {
                 }]));
             })
             
-            test('should return failure when arguments are not numbers', () => {
+            test('should return failure when argument is not number', () => {
                 const ast = grammar.parse('=NEGATE("1")')
             
                 expect(validate(ast)).toStrictEqual(makeSemanticFailure([{
@@ -1196,6 +1252,12 @@ describe("Grammar", () => {
                 expect(validate(ast)).toStrictEqual(makeSuccess());
             })
             
+            test('should return success when argument is Ref', () => {
+                const ast = grammar.parse('=NEGATE(R1)')
+            
+                expect(validate(ast)).toStrictEqual(makeSuccess());
+            })
+            
             test('should return failure when arguments are result of inner functions with incorrect type', () => {
                 const ast = grammar.parse('=NEGATE(CONCAT("a", "b"))')
             
@@ -1209,5 +1271,18 @@ describe("Grammar", () => {
                 }]));
             })
         })
+    })
+
+    describe("Runtime value resolution", () => {
+        test("should return an error when resolving an invalid ref value within a math expression", () => {
+            const refs = {
+                R1: new NumberType(INDEX_INFO, "somestring"),
+            };
+            const dependencyValueMap = new Map(Object.entries(refs));
+
+            expect(grammar.tryParse("=-R1").getValue(dependencyValueMap).getError()).toStrictEqual(
+                ValueResolvingResult.error(new Error("Arguments must be numbers.")).getError()
+            );
+        });
     })
 });

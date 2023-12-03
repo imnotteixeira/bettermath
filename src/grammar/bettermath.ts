@@ -10,6 +10,8 @@ import {
     NumberType,
     IValueType,
     BettermathGrammarParser,
+    IRefType,
+    RefType,
 } from "./definitions";
 import { FunctionType, IFunctionArg } from "./functions/types";
 import { FunctionRegistry } from "./functions";
@@ -262,7 +264,13 @@ const buildGrammar = (functionRegistry: FunctionRegistry): BettermathGrammarPars
         (str: string, indexInfo: Index) => new NumberType(indexInfo, str)
     ).desc("number");
     
-    const ExpressionValue = P.alt<IValueType<number> | IValueType<string>>(Num, QuotedString);
+    const Ref: P.Parser<IRefType> = P.seqMap<string, Index, IRefType>(
+        P.regexp(/[A-Z]+[1-9]+[0-9]*/).notFollowedBy(Word),
+        P.index,
+        (str: string, indexInfo: Index) => new RefType(indexInfo, str)
+    ).desc("ref");
+
+    const ExpressionValue = P.alt<IValueType<number> | IValueType<string>>(Num, QuotedString, Ref);
     const ImmediateValue = P.alt<IValueType<number> | IValueType<string>>(
         Num.notFollowedBy(RawString),
         RawString,
