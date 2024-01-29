@@ -13,7 +13,7 @@ export class FactorialFunction extends FunctionType<number> {
         super(indexInfo, "Factorial", args);
     }
 
-    getValue = (dependencyValueMap: Map<string, IBaseType<any> | undefined>) => {
+    getValue = (dependencyValueMap: Map<string, any>) => {
         try {
             const resolvedValues = resolveValuesOnlyNumbers([this.args[0].getValue(dependencyValueMap)])
             return ValueResolvingResult.success(this.calculateFactorial(resolvedValues[0]));
@@ -39,5 +39,7 @@ export class FactorialFunction extends FunctionType<number> {
 
         return num * this.calculateFactorial(num - 1);
     };
+
+    toString = () => `FactorialFunction(${this.args.map(arg => arg.toString()).join(",")})`;
 
 }

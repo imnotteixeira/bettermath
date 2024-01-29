@@ -14,7 +14,7 @@ export class NegateFunction extends FunctionType<number> {
     }
 
 
-    getValue = (dependencyValueMap: Map<string, IBaseType<any> | undefined>) => {
+    getValue = (dependencyValueMap: Map<string, any>) => {
         try {
             const resolvedValues = resolveValuesOnlyNumbers([this.args[0].getValue(dependencyValueMap)])
             return ValueResolvingResult.success(-resolvedValues[0]);
@@ -34,4 +34,6 @@ export class NegateFunction extends FunctionType<number> {
         if(validationResult) return onFailure(validationResult)
         else return onSuccess();
     };
+
+    toString = () => `NegateFunction(${this.args.map(arg => arg.toString()).join(",")})`;
 }

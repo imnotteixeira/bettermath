@@ -5,11 +5,12 @@ import { PipelineValidator, validationPipeline } from "./validator/pipeline";
 
 export type IFunctionArg<T> = IExpressionType<T>;
 
+type ReturnableTypes = Types.NUMBER | Types.STRING
 export interface IFunction<T> extends IBaseType<T> {
     type: Types.FUNCTION;
     fn: string;
     args: IFunctionArg<any>[];
-    returnType: Types;
+    returnType: ReturnableTypes;
 }
 
 export type FunctionArgsValidator = (validator: PipelineValidator, _: IFunctionArg<any>[], onSuccess: () => void, onFailure: (errors: ValidationError[]) => void) => void;
@@ -18,7 +19,7 @@ export abstract class FunctionType<T> extends BaseType<T> implements IFunction<T
     readonly type = Types.FUNCTION;
     readonly fn: string;
     readonly args: IFunctionArg<any>[];
-    abstract readonly returnType: Types;
+    abstract readonly returnType: ReturnableTypes;
 
     constructor(indexInfo: Index, fn: string, args: IFunctionArg<any>[]) {
         super(indexInfo);
@@ -45,4 +46,6 @@ export abstract class FunctionType<T> extends BaseType<T> implements IFunction<T
 
     // Optional function that child-classes can override to define their own validation
     protected validateArgs: FunctionArgsValidator = (validator: PipelineValidator, _: IFunctionArg<any>[], onSuccess: () => void, onFailure: (errors: ValidationError[]) => void) => onSuccess();
+
+    toString = () => `[MISSING TOSTRING IMPL] :: Function(${this.args.map(arg => arg.toString()).join(",")})`;
 }

@@ -1,5 +1,5 @@
 import type { Index } from "parsimmon";
-import { IBaseType, Types, ValueResolvingResult } from "../../definitions";
+import { IBaseType, NumberType, Types, ValueResolvingResult } from "../../definitions";
 import { ValidationError } from "../validator";
 import { FunctionArgsValidator, FunctionType, IFunctionArg } from "../types";
 import { CommonValidators, PipelineValidator } from "../validator/pipeline";
@@ -13,7 +13,7 @@ export class AddFunction extends FunctionType<number> {
         super(indexInfo, "Add", args);
     }
 
-    getValue = (dependencyValueMap: Map<string, IBaseType<any> | undefined>) => {
+    getValue = (dependencyValueMap: Map<string, any>) => {
         try {
             const resolvedValues = resolveValuesOnlyNumbers(this.args.map(arg => arg.getValue(dependencyValueMap)))
             return ValueResolvingResult.success(resolvedValues[0] + resolvedValues[1]);
@@ -32,4 +32,6 @@ export class AddFunction extends FunctionType<number> {
         if(validationResult) return onFailure(validationResult)
         else return onSuccess();
     };
+
+    toString = () => `AddFunction(${this.args.map(arg => arg.toString()).join(",")})`;
 }

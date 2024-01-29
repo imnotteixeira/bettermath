@@ -8,7 +8,7 @@ export class ConcatFunction extends FunctionType<string> {
         super(indexInfo, "CONCAT", args);
     }
 
-    getValue = (dependencyValueMap: Map<string, IBaseType<any> | undefined>) => {
+    getValue = (dependencyValueMap: Map<string, any>) => {
         try {
             return ValueResolvingResult.success(
                 this.args.reduce((acc, arg) => acc + arg.getValue(dependencyValueMap).getOrElse(""), "")
@@ -17,4 +17,6 @@ export class ConcatFunction extends FunctionType<string> {
             return ValueResolvingResult.error<string>(e as Error)
         }
     }
+
+    toString = () => `ConcatFunction(${this.args.map(arg => arg.toString()).join(",")})`;
 }

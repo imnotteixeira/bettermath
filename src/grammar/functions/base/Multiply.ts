@@ -12,7 +12,7 @@ export class MultiplyFunction extends FunctionType<number> {
         super(indexInfo, "Multiply", args);
     }
 
-    getValue = (dependencyValueMap: Map<string, IBaseType<any> | undefined>) => {
+    getValue = (dependencyValueMap: Map<string, any>) => {
         try {
             const resolvedValues = resolveValuesOnlyNumbers(this.args.map(arg => arg.getValue(dependencyValueMap)))
             return ValueResolvingResult.success(resolvedValues[0] * resolvedValues[1]);
@@ -31,4 +31,6 @@ export class MultiplyFunction extends FunctionType<number> {
         if(validationResult) return onFailure(validationResult)
         else return onSuccess();
     };
+
+    toString = () => `MultiplyFunction(${this.args.map(arg => arg.toString()).join(",")})`;
 }

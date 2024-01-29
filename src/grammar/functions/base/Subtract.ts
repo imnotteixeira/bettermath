@@ -13,7 +13,7 @@ export class SubtractFunction extends FunctionType<number> {
         super(indexInfo, "Subtract", args);
     }
 
-    getValue = (dependencyValueMap: Map<string, IBaseType<any> | undefined>) => {
+    getValue = (dependencyValueMap: Map<string, any>) => {
         try {
             const resolvedValues = resolveValuesOnlyNumbers(this.args.map(arg => arg.getValue(dependencyValueMap)))
             return ValueResolvingResult.success(resolvedValues[0] - resolvedValues[1]);
@@ -32,4 +32,6 @@ export class SubtractFunction extends FunctionType<number> {
         if(validationResult) return onFailure(validationResult)
         else return onSuccess();
     };
+
+    toString = () => `SubtractFunction(${this.args.map(arg => arg.toString()).join(",")})`;
 }
