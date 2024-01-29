@@ -48,7 +48,7 @@ export class ValueResolvingResult<T> {
 export interface IBaseType<T> {
     type: AllowedType;
     indexInfo: Index;
-    getValue: (dependencyValueMap: Map<string, IBaseType<any> | undefined>) => ValueResolvingResult<T>;
+    getValue: (dependencyValueMap: Map<string, any>) => ValueResolvingResult<T>;
 
     validate: () => ValidationResult;
 
@@ -59,8 +59,9 @@ export abstract class BaseType<T> implements IBaseType<T> {
     abstract type: AllowedType;
     readonly indexInfo: Index;
 
-    abstract getValue: (dependencyValueMap: Map<string, IBaseType<any> | undefined>) => ValueResolvingResult<T>;
+    abstract getValue: (dependencyValueMap: Map<string, any>) => ValueResolvingResult<T>;
     abstract validate: () => ValidationResult;
+    abstract toString: () => string;
 
     constructor(indexInfo: Index) {
         this.indexInfo = indexInfo;
@@ -102,6 +103,8 @@ export class StringType extends BaseType<string> implements IStringType {
 
     getValue = () => ValueResolvingResult.success(this.value);
     validate = () => makeSuccess();
+
+    toString = () => `StringType(${this.value})`
 }
 
 export interface INumberType extends IBaseType<number> {
@@ -120,6 +123,8 @@ export class NumberType extends BaseType<number> implements INumberType {
 
     getValue = () => ValueResolvingResult.success(this.value);
     validate = () => makeSuccess();
+
+    toString = () => `NumberType(${this.value})`
 }
 
 export interface IRefType extends IBaseType<any|undefined> {
@@ -136,18 +141,22 @@ export class RefType extends BaseType<any | undefined> implements IRefType {
         this.value = refId;
     }
 
-    getValue = (dependencyValueMap: Map<string, IBaseType<any> | undefined>) => {
-        const referencedElem = dependencyValueMap.get(this.value);
-        if (!referencedElem) {
+    getValue = (dependencyValueMap: Map<string, any>) => {
+        const referencedValue = dependencyValueMap.get(this.value);
+        console.debug(`This is the referencedValue with id <${this.value}>:`, referencedValue)
+        if (!referencedValue) {
             // Returning undefined value as success, since some functions may take advanatage of this, even though the value does not exist.
             // Specific ValueResolvingResult.error will be returned if some function is processing an undefined Ref when it can't
             return ValueResolvingResult.success(undefined)
-        } else {
-            return referencedElem.getValue(dependencyValueMap)
-        }
+        } 
+        
+        return ValueResolvingResult.success(referencedValue);
+        
     }
 
     validate = () => makeSuccess();
+
+    toString = () => `RefType(${this.value})`
 }
 
 export type IValueType<T> = IBaseType<T>;

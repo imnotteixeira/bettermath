@@ -72,7 +72,7 @@ describe("Grammar", () => {
                 const refId = "R1";
                 const refElem = new NumberType(INDEX_INFO, "11");
                 const dependencyValueMap = new Map([
-                    [refId, refElem]
+                    [refId, refElem.getValue().get()]
                 ]);
 
                 expect(grammar.tryParse(`=${refId}`).getValue(dependencyValueMap).get()).toBe(
@@ -819,7 +819,9 @@ describe("Grammar", () => {
                                 R1: new NumberType(INDEX_INFO, "1"),
                                 R2: new NumberType(INDEX_INFO, "2"),
                             };
-                            const dependencyValueMap = new Map(Object.entries(refs));
+                            const dependencyValueMap = new Map(Object.entries(refs)
+                                .map(([k,v]) => ([k, v.getValue().get()]))
+                            );
             
                             const expectedExpression = new AddFunction(INDEX_INFO, Object.values(refs));
 
@@ -832,7 +834,9 @@ describe("Grammar", () => {
                             const refs = {
                                 R1: new NumberType(INDEX_INFO, "1"),
                             };
-                            const dependencyValueMap = new Map(Object.entries(refs));
+                            const dependencyValueMap = new Map(Object.entries(refs)
+                                .map(([k,v]) => ([k, v.getValue().get()]))
+                            );
             
                             const expectedExpression = new NegateFunction(INDEX_INFO, Object.values(refs));
 
